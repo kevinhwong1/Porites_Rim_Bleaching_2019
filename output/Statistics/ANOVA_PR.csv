@@ -1,0 +1,10 @@
+Analysis of Variance Table
+
+Response: PR
+                Df Sum Sq Mean Sq F value    Pr(>F)    
+Group            2 6.5035  3.2518  53.843 1.514e-11 ***
+Timepoint        2 4.2652  2.1326  35.312 3.252e-09 ***
+Group:Timepoint  4 4.3340  1.0835  17.941 3.488e-08 ***
+Residuals       36 2.1742  0.0604                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1

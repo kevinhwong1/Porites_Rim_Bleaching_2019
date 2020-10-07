@@ -1,0 +1,15 @@
+ Group     Timepoint lsmean   SE df lower.CL upper.CL .group
+ Bleached  T3         0.191 0.11 36  -0.1324    0.514  a    
+ Mortality T2         0.257 0.11 36  -0.0663    0.580  a    
+ Bleached  T2         0.355 0.11 36   0.0314    0.678  a    
+ Mortality T3         0.455 0.11 36   0.1322    0.779  a    
+ Control   T3         1.228 0.11 36   0.9045    1.551   b   
+ Mortality T1         1.290 0.11 36   0.9668    1.613   b   
+ Control   T1         1.338 0.11 36   1.0152    1.662   bc  
+ Bleached  T1         1.429 0.11 36   1.1058    1.752   bc  
+ Control   T2         1.841 0.11 36   1.5182    2.165    c  
+
+Confidence level used: 0.95 
+Conf-level adjustment: sidak method for 9 estimates 
+P value adjustment: tukey method for comparing a family of 9 estimates 
+significance level used: alpha = 0.05 

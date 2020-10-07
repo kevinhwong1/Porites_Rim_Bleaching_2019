@@ -1,0 +1,10 @@
+Analysis of Variance Table
+
+Response: Pgross_umol.cm2.hr
+                Df Sum Sq Mean Sq F value    Pr(>F)    
+Group            2 1.6871 0.84356  25.869 1.087e-07 ***
+Timepoint        2 3.2558 1.62790  49.922 4.156e-11 ***
+Group:Timepoint  4 1.3409 0.33522  10.280 1.174e-05 ***
+Residuals       36 1.1739 0.03261                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
