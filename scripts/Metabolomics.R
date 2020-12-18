@@ -108,7 +108,7 @@ peak.all2$Norm.IonCount <- peak.all2$Raw.IonCount / peak.all2$Weight.mg
 #Selecting columns of interest
 peak.all3 <- peak.all2 %>% dplyr::select(Sample.ID, compound_polarity, Fragment.ID, Time, Treatment, Norm.IonCount)
 
-#Refomatting datframe so compounds are listed as coumn headers
+#Reformatting dataframe so compounds are listed as column headers
 peak.all4 <- peak.all3 %>% spread(compound_polarity, Norm.IonCount)
 
 #Making row names as sample ID
@@ -240,31 +240,55 @@ perf.splsda <- perf(MyResult.splsda.final, validation = "Mfold", folds = 5,
 perf.splsda$auc
 perf.splsda$error.rate
 
+plot(perf.splsda)
+dev.off()
+
+par(mfrow=c(1,4))
+plot(perf.splsda$features$stable[[1]], type = 'h', ylab = 'Stability', 
+     xlab = 'Features', main = 'Comp 1', las =2)
+plot(perf.splsda$features$stable[[2]], type = 'h', ylab = 'Stability', 
+     xlab = 'Features', main = 'Comp 2', las =2)
+plot(perf.splsda$features$stable[[3]], type = 'h', ylab = 'Stability', 
+     xlab = 'Features', main = 'Comp 3', las =2)
+plot(perf.splsda$features$stable[[4]], type = 'h', ylab = 'Stability', 
+     xlab = 'Features', main = 'Comp 4', las =2)
+dev.off()
+
+
+# here we match the selected variables to the stable features
+ind.match = match(selectVar(MyResult.splsda.final, comp = 1)$name, 
+                  names(perf.splsda$features$stable[[1]]))
+#extract the frequency of selection of those selected variables
+Freq = as.numeric(perf.splsda$features$stable[[1]][ind.match])
+
+comp1.select.metabolites <- data.frame(selectVar(MyResult.splsda.final, comp = 1)$value, Freq)
+
+
 #Heatmap of loading 1
 cim(MyResult.splsda.final, comp=1, title="Component 1")
 dev.off()
 
+# 
+# #Calculating Q and Y for spls
+# 
+# X <- ... # X data
+# Y <- ... # Y data (factor or discrete data)
+# Y.mat <- unmap(Y) # creates a dummy matrix
+# res <- spls(X, Y.mat, …)
+# val <- perf(res, criterion = c("R2", "Q2"))
+# val
+# 
+# ncomp = 4
+# result.spls <- spls(X, Y, ncomp = ncomp, keepX = c(rep(10, ncomp)), mode = 'regression')
+# tune.spls <- perf(result.spls, validation = 'Mfold', folds = 10,
+#                   criterion = 'all', progressBar = FALSE)
+# 
+# 
+# 
+# ##-----------
+# 
 
-#Calculating Q and Y for spls
-
-X <- ... # X data
-Y <- ... # Y data (factor or discrete data)
-Y.mat <- unmap(Y) # creates a dummy matrix
-res <- spls(X, Y.mat, …)
-val <- perf(res, criterion = c("R2", "Q2"))
-val
-
-ncomp = 4
-result.spls <- spls(X, Y, ncomp = ncomp, keepX = c(rep(10, ncomp)), mode = 'regression')
-tune.spls <- perf(result.spls, validation = 'Mfold', folds = 10,
-                  criterion = 'all', progressBar = FALSE)
-
-
-
-##-----------
-
-
-
+### Try Multi-level sPLS-DA next 
 
 ############## 
 
