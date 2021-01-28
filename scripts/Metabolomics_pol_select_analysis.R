@@ -1,4 +1,4 @@
-#Title: Metabolomic Data Analysis - Prelim with no polarity selection
+#Title: Metabolomic Data Analysis
 #Author: KH Wong
 #Date Last Modified: 20201208
 #See Readme file for details
@@ -12,6 +12,8 @@ library("tidyverse")
 library("Rmisc")
 library("ggplot2")
 library("arsenal")
+library(gridExtra)
+library(ggpubr)
 # if(!require(devtools)) install.packages("devtools")
 # devtools::install_github("kassambara/factoextra")
 # 
@@ -25,15 +27,9 @@ library(factoextra)
 library(ropls)
 
 #BiocManager::install("mixOmics")
-#library('devtools')
-#install_github("mixOmicsTeam/mixOmics")
 library(mixOmics)
 
-#BiocManager::install("metabolomics") #doesnt work
 
-#install.packages("muma")
-#library("muma")
-# 
 # # Or for the latest dev version:
 # BiocManager::install("M3C")
 # BiocManager::install("pathifier")
@@ -79,25 +75,56 @@ peak.pos3 <- peak.pos2[ -c(2:9)] # if we need the blanks, change the 9 to 6
 peak.neg2 <- peak.neg[ -c(1:9)] 
 peak.neg3 <- peak.neg2[ -c(2:9)] # if we need the blanks, change the 9 to 6
 
-# Adding Polarity column to each dataset 
+#### Selecting polarity based on higher signal intensity ###
 
-peak.pos3$Polarity <- as.factor("Positive")
-peak.neg3$Polarity <- as.factor("Negative")
+#obtain row means 
 
-peak.pos3$compound_polarity <- paste(peak.pos3$compound, peak.pos3$Polarity, sep = "_")
-peak.neg3$compound_polarity <- paste(peak.neg3$compound, peak.neg3$Polarity, sep = "_")
+pos.mean <- data.frame(ID=peak.pos3[,1], Means=rowMeans(peak.pos3[,-1]))
+neg.mean <- data.frame(ID=peak.neg3[,1], Means=rowMeans(peak.neg3[,-1]))
+
+# Comparing polarity means of each metabolite, x = pos, y = neg 
+cmp <- comparedf(pos.mean, neg.mean, by = "ID",
+                 tol.factor = "labels")        # match only factor labels
+
+n.diffs(cmp) #58 shared metabolites
+
+list.diffs <- as.data.frame(do.call(cbind, diffs(cmp))) #creating a dataframe with shared metabolites as a list
+
+df.diffs <- data.frame(matrix(unlist(list.diffs), nrow=n.diffs(cmp), byrow=F),stringsAsFactors=FALSE) #converting list to dataframe
+
+names(df.diffs)[1:7] <- c("var.x", "var.y", "ID", "values.x", "values.y", "row.x", "row.y") #changing column names
+
+i <- c(4, 5) #specifying values column
+df.diffs[ , i] <- apply(df.diffs[ , i], 2,            # changing values column to numeric
+                        function(x) as.numeric(as.character(x)))
+
+df.diffs$selected.pol <-  ifelse(df.diffs$values.x > df.diffs$values.y, 'x', 
+                                 ifelse(df.diffs$values.x < df.diffs$values.y, 'y', 'tie')) #selecting polarity with highest mean
+
+x.diff.keep <- df.diffs %>% 
+  filter(selected.pol == "x") #extracting x selection
+
+y.diff.keep <- df.diffs %>%
+  filter(selected.pol == "y") #extracting y selection
+
+x.all.keep <- peak.pos3[!(peak.pos3$compound %in% y.diff.keep$ID),] #removing rows where the metabolite is higher in neg df
+y.all.keep <- peak.neg3[!(peak.neg3$compound %in% x.diff.keep$ID),] #removing rows where the metabolite is higher in pos df
+
 
 # Re-shaping dataset 
-peak.pos4<- melt(peak.pos3, id=(c("compound", "compound_polarity"))) #melting dataset 
+peak.pos4<- melt(x.all.keep, id= "compound") #melting dataset 
+peak.neg4<- melt(y.all.keep, id= "compound") #melting dataset 
 
-peak.neg4<- melt(peak.neg3, id=(c("compound", "compound_polarity"))) #melting dataset 
+# adding polarity 
+peak.pos4$polarity <- "positive"
+peak.neg4$polarity <- "negative"
 
 # Binding positive and negative datasets together
 peak.all <- rbind(peak.pos4, peak.neg4)
 
 # Renaming column 
-names(peak.all)[3] <- "Sample.ID"
-names(peak.all)[4] <- "Raw.IonCount"
+names(peak.all)[2] <- "Sample.ID"
+names(peak.all)[3] <- "Raw.IonCount"
 
 # Merging weight sample info
 peak.all2 <- merge(peak.all, sample.info, by = "Sample.ID")
@@ -107,48 +134,112 @@ peak.all2 <- merge(peak.all, sample.info, by = "Sample.ID")
 peak.all2$Raw.IonCount <- as.numeric(as.character(peak.all2$Raw.IonCount))
 peak.all2$Norm.IonCount <- peak.all2$Raw.IonCount / peak.all2$Weight.mg
 
+#subsetting for pos and neg analysis
+peak.all.pos2 <- peak.all2 %>% filter(polarity == "positive")
+peak.all.neg2 <- peak.all2 %>% filter(polarity == "negative")
+
 #Selecting columns of interest
-peak.all3 <- peak.all2 %>% dplyr::select(Sample.ID, compound_polarity, Fragment.ID, Time, Treatment, Norm.IonCount)
+peak.all3 <- peak.all2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Time, Treatment, Norm.IonCount)
+
+peak.all.pos3 <- peak.all.pos2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Time, Treatment, Norm.IonCount)
+peak.all.neg3 <- peak.all.neg2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Time, Treatment, Norm.IonCount)
 
 #Reformatting dataframe so compounds are listed as column headers
-peak.all4 <- peak.all3 %>% spread(compound_polarity, Norm.IonCount)
+peak.all4 <- peak.all3 %>% spread(compound, Norm.IonCount)
+
+peak.all.pos4 <- peak.all.pos3 %>% spread(compound, Norm.IonCount)
+peak.all.neg4 <- peak.all.neg3 %>% spread(compound, Norm.IonCount)
 
 #Making row names as sample ID
 peak.all5 <- column_to_rownames(peak.all4, 'Sample.ID')
 
+peak.all.pos5 <- column_to_rownames(peak.all.pos4, 'Sample.ID')
+peak.all.neg5 <- column_to_rownames(peak.all.neg4, 'Sample.ID')
+
 #Making treatment and time groups 
 peak.all5$Treatment_Time <- paste(peak.all5$Treatment, peak.all5$Time, sep = "_")
 
-#Selecting active rows and columns (in that order)
-peak.all6 <- peak.all5[1:45, 4:242]
+peak.all.pos5$Treatment_Time <- paste(peak.all.pos5$Treatment, peak.all.pos5$Time, sep = "_")
+peak.all.neg5$Treatment_Time <- paste(peak.all.neg5$Treatment, peak.all.neg5$Time, sep = "_")
 
-#adding 1000 to all variable to accound for 0 values and log normalization 
+#Selecting active rows and columns (in that order)
+peak.all6 <- peak.all5[1:45, 4:184]
+
+peak.all.pos6 <- peak.all.pos5[1:45, 4:85]
+peak.all.neg6 <- peak.all.neg5[1:45, 4:102]
+
+#adding 1000 to all variable to account for 0 values and log normalization 
 peak.all7 <- peak.all6 + 1000
+
+peak.all.pos7 <- peak.all.pos6 + 1000
+peak.all.neg7 <- peak.all.neg6 + 1000
 
 #Log normalization (https://www.intechopen.com/books/metabolomics-fundamentals-and-applications/processing-and-visualization-of-metabolomics-data-using-r)
 peak.all.active <- log(peak.all7, 2)
 
+peak.pos.active <- log(peak.all.pos7, 2)
+peak.neg.active <- log(peak.all.neg7, 2)
 
 #### PCA ####
 # http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/118-principal-component-analysis-in-r-prcomp-vs-princomp/
 
-res.pca <- prcomp(peak.all.active, scale = TRUE)
 
-fviz_eig(res.pca)
 
 ### Grouped PCA 
-#groups <- as.factor(peak.all5$Treatment_Time[1:45])
-fviz_pca_ind(res.pca,
+
+#All polarities
+res.pca <- prcomp(peak.all.active, scale = TRUE)
+fviz_eig(res.pca)
+
+pca.all <- fviz_pca_ind(res.pca,
              habillage=peak.all5$Treatment_Time,
              palette = c("seagreen1", "seagreen3", "seagreen4", "skyblue1", "skyblue3", "skyblue4", "salmon1", "salmon3", "salmon4"),
              label = "none",
+             title = "All Polarities",
              addEllipses = TRUE, # Concentration ellipses
              ellipse.type = "confidence",
              legend.title = "Groups",
+             legend = c(0.8,0.8),
              repel = FALSE
+) + scale_shape_manual(values = c(17, 17, 17, 15, 15, 15, 19, 19, 19)) 
+
+#Positive polarity
+res.pca.pos <- prcomp(peak.pos.active, scale = TRUE)
+fviz_eig(res.pca.pos)
+
+pca.pos <- fviz_pca_ind(res.pca.pos,
+                        habillage=peak.all5$Treatment_Time,
+                        palette = c("seagreen1", "seagreen3", "seagreen4", "skyblue1", "skyblue3", "skyblue4", "salmon1", "salmon3", "salmon4"),
+                        label = "none",
+                        title = "Positive Polarity",
+                        addEllipses = TRUE, # Concentration ellipses
+                        ellipse.type = "confidence",
+                        legend.title = "Groups",
+                        repel = FALSE, 
+                        legend = "none",
 ) + scale_shape_manual(values = c(17, 17, 17, 15, 15, 15, 19, 19, 19))
 
-###Assessing PCA
+#Negative polarity
+res.pca.neg <- prcomp(peak.neg.active, scale = TRUE)
+fviz_eig(res.pca.neg)
+
+pca.neg <- fviz_pca_ind(res.pca.neg,
+                        habillage=peak.all5$Treatment_Time,
+                        palette = c("seagreen1", "seagreen3", "seagreen4", "skyblue1", "skyblue3", "skyblue4", "salmon1", "salmon3", "salmon4"),
+                        label = "none",
+                        title = "Negative Polarity",
+                        addEllipses = TRUE, # Concentration ellipses
+                        ellipse.type = "confidence",
+#                        legend.title = "Groups",
+                        repel = FALSE,
+                        legend = "none", 
+) + scale_shape_manual(values = c(17, 17, 17, 15, 15, 15, 19, 19, 19))
+
+Metab.Figs <- ggarrange(pca.pos, pca.neg, pca.all, common.legend = TRUE, legend = "right", ncol=3) 
+
+ggsave(file="output/Metab.pcas.pdf", Metab.Figs, width = 11, height = 5, units = c("in"))
+
+ ###Assessing PCA
 # Eigenvalues
 eig.val <- get_eigenvalue(res.pca)
 eig.val
@@ -158,6 +249,7 @@ res.var <- get_pca_var(res.pca)
 res.var$coord          # Coordinates
 res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
+
 # Results for individuals
 res.ind <- get_pca_ind(res.pca)
 res.ind$coord          # Coordinates
@@ -177,7 +269,7 @@ dim(X) ## number of samples and features
 length(Y) ## length of class membership factor = number of samples
 
 #PLSDA without variable selection
-MyResult.plsda <- plsda(X,Y) # 1 Run the method
+MyResult.plsda <- plsda(X, Y) # 1 Run the method
 plotIndiv(MyResult.plsda)    # 2 Plot the samples
 
 plotVar(MyResult.plsda, cutoff = 0.7)    
