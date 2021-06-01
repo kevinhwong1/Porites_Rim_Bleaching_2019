@@ -14,6 +14,8 @@ library("ggplot2")
 library("arsenal")
 library(gridExtra)
 library(ggpubr)
+library(janitor)
+
 # if(!require(devtools)) install.packages("devtools")
 # devtools::install_github("kassambara/factoextra")
 # 
@@ -28,7 +30,6 @@ library(ropls)
 
 #BiocManager::install("mixOmics")
 library(mixOmics)
-library(RVAideMemoire)
 
 
 # # Or for the latest dev version:
@@ -111,88 +112,75 @@ x.all.keep <- peak.pos3[!(peak.pos3$compound %in% y.diff.keep$ID),] #removing ro
 y.all.keep <- peak.neg3[!(peak.neg3$compound %in% x.diff.keep$ID),] #removing rows where the metabolite is higher in pos df
 
 
-# Re-shaping dataset 
-peak.pos4<- melt(x.all.keep, id= "compound") #melting dataset 
-peak.neg4<- melt(y.all.keep, id= "compound") #melting dataset 
+#### Standardizing by metabolite median 
 
-# adding polarity 
-peak.pos4$polarity <- "positive"
-peak.neg4$polarity <- "negative"
+#Transposing dataframes
 
-# Binding positive and negative datasets together
-peak.all <- rbind(peak.pos4, peak.neg4)
+x.all.keep.T <- as.data.frame(t(as.matrix(x.all.keep))) %>%
+  janitor::row_to_names(1)
+
+y.all.keep.T <- as.data.frame(t(as.matrix(y.all.keep))) %>%
+  janitor::row_to_names(1)
+
+# combining selected metabolites at both polarities 
+T.all.keep <- cbind(x.all.keep.T, y.all.keep.T)
+
+# Making values numeric (need to fix because this removes sample info)
+T.all.keep.num <- as.data.frame(lapply(T.all.keep[1:181], as.numeric))
+
+# Calculating the median of all rows
+T.all.keep$Median <- apply(T.all.keep[,], 1, FUN=median, na.rm=TRUE)
+
+# Normalizing ion counts by median
+T.all.norm <- T.all.keep %>% mutate_all(funs(./Median))
+
+#Binding sample info 
+
+T.all.norm.samp <- cbind(sample.info$Sample.ID, T.all.norm) #### STUCK HERE - FIGURE OUT HOW TO PROPERLY FORMAT HEADERS
+
+names(T.all.norm.samp)[1] <- "Sample.ID"
+
+B.peak.all.1<- melt(T.all.norm.samp, id= "Sample.ID") #melting dataset 
 
 # Renaming column 
-names(peak.all)[2] <- "Sample.ID"
-names(peak.all)[3] <- "Raw.IonCount"
+names(B.peak.all.1)[2] <- "compound"
+names(B.peak.all.1)[3] <- "Norm.IonCount"
 
 # Merging weight sample info
-peak.all2 <- merge(peak.all, sample.info, by = "Sample.ID")
-
-# Normalization by weight
-
-peak.all2$Raw.IonCount <- as.numeric(as.character(peak.all2$Raw.IonCount))
-peak.all2$Norm.IonCount <- peak.all2$Raw.IonCount / peak.all2$Weight.mg
-
-#subsetting for pos and neg analysis
-peak.all.pos2 <- peak.all2 %>% filter(polarity == "positive")
-peak.all.neg2 <- peak.all2 %>% filter(polarity == "negative")
+B.peak.all.2 <- merge(sample.info, B.peak.all.1, by = "Sample.ID")
 
 #Selecting columns of interest
-peak.all3 <- peak.all2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Time, Treatment, Norm.IonCount)
-
-peak.all.pos3 <- peak.all.pos2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Time, Treatment, Norm.IonCount)
-peak.all.neg3 <- peak.all.neg2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Time, Treatment, Norm.IonCount)
+B.peak.all.3 <- B.peak.all.2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Time, Treatment, Norm.IonCount)
 
 #Reformatting dataframe so compounds are listed as column headers
-peak.all4 <- peak.all3 %>% spread(compound, Norm.IonCount)
-
-peak.all.pos4 <- peak.all.pos3 %>% spread(compound, Norm.IonCount)
-peak.all.neg4 <- peak.all.neg3 %>% spread(compound, Norm.IonCount)
+B.peak.all.4 <- B.peak.all.3 %>% spread(compound, Norm.IonCount)
 
 #Making row names as sample ID
-peak.all5 <- column_to_rownames(peak.all4, 'Sample.ID')
-
-peak.all.pos5 <- column_to_rownames(peak.all.pos4, 'Sample.ID')
-peak.all.neg5 <- column_to_rownames(peak.all.neg4, 'Sample.ID')
+B.peak.all.5 <- column_to_rownames(B.peak.all.4, 'Sample.ID')
 
 #Making treatment and time groups 
-peak.all5$Treatment_Time <- paste(peak.all5$Treatment, peak.all5$Time, sep = "_")
-
-peak.all.pos5$Treatment_Time <- paste(peak.all.pos5$Treatment, peak.all.pos5$Time, sep = "_")
-peak.all.neg5$Treatment_Time <- paste(peak.all.neg5$Treatment, peak.all.neg5$Time, sep = "_")
+B.peak.all.5$Treatment_Time <- paste(B.peak.all.5$Treatment, B.peak.all.5$Time, sep = "_")
 
 #Selecting active rows and columns (in that order)
-peak.all6 <- peak.all5[1:45, 4:184]
-
-peak.all.pos6 <- peak.all.pos5[1:45, 4:85]
-peak.all.neg6 <- peak.all.neg5[1:45, 4:102]
+B.peak.all.6 <- B.peak.all.5[1:45, 4:184]
 
 #adding 1000 to all variable to account for 0 values and log normalization 
-peak.all7 <- peak.all6 + 1000
-
-peak.all.pos7 <- peak.all.pos6 + 1000
-peak.all.neg7 <- peak.all.neg6 + 1000
+B.peak.all.7 <- B.peak.all.6 + 1000
 
 #Log normalization (https://www.intechopen.com/books/metabolomics-fundamentals-and-applications/processing-and-visualization-of-metabolomics-data-using-r)
-peak.all.active <- log(peak.all7, 2)
-
-peak.pos.active <- log(peak.all.pos7, 2)
-peak.neg.active <- log(peak.all.neg7, 2)
+B.peak.all.active <- log(B.peak.all.7, 2)
 
 #### PCA ####
 # http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/118-principal-component-analysis-in-r-prcomp-vs-princomp/
 
-
-
 ### Grouped PCA 
 
 #All polarities
-res.pca <- prcomp(peak.all.active, scale = TRUE)
-fviz_eig(res.pca)
+B.res.pca <- prcomp(B.peak.all.active, scale = TRUE)
+fviz_eig(B.res.pca)
 
-pca.all <- fviz_pca_ind(res.pca,
-             habillage=peak.all5$Treatment_Time,
+B.pca.all <- fviz_pca_ind(B.res.pca,
+             habillage=B.peak.all.5$Treatment_Time,
              palette = c("seagreen1", "seagreen3", "seagreen4", "skyblue1", "skyblue3", "skyblue4", "salmon1", "salmon3", "salmon4"),
              label = "none",
              title = "All Polarities",
@@ -276,16 +264,12 @@ plotVar(MyResult.plsda, cutoff = 0.7)
 
 plotIndiv(MyResult.plsda, ind.names = FALSE, legend=TRUE,ellipse = TRUE, title="PLS-DA - ALL DATA")
 
-
-PLSDA.VIP(MyResult.plsda)
-
 MyResult.plsda2 <- plsda(X,Y, ncomp=8) #number of components is #classes-1
 selectVar(MyResult.plsda2, comp=1)$value
 
 plotLoadings(MyResult.plsda2, comp = 1, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
 plotLoadings(MyResult.plsda2, comp = 2, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
 
-comp1.select.metabolites.all <- data.frame(selectVar(MyResult.plsda2, comp = 1)$value)
 
 # component validation 
 MyResult.plsda2 <- plsda(X,Y, ncomp=8)
@@ -352,6 +336,7 @@ plot(perf.splsda$features$stable[[4]], type = 'h', ylab = 'Stability',
      xlab = 'Features', main = 'Comp 4', las =2)
 dev.off()
 
+
 # here we match the selected variables to the stable features
 ind.match = match(selectVar(MyResult.splsda.final, comp = 1)$name, 
                   names(perf.splsda$features$stable[[1]]))
@@ -359,6 +344,7 @@ ind.match = match(selectVar(MyResult.splsda.final, comp = 1)$name,
 Freq = as.numeric(perf.splsda$features$stable[[1]][ind.match])
 
 comp1.select.metabolites <- data.frame(selectVar(MyResult.splsda.final, comp = 1)$value, Freq)
+
 
 #Heatmap of loading 1
 cim(MyResult.splsda.final, comp=1, title="Component 1")

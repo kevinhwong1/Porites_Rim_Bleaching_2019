@@ -1,35 +1,34 @@
----
-title: "Metabolomics_data_analysis"
-author: "Kevin Wong"
-date: "01/06/2021"
-output: html_document
----
+#Title: Metabolomic Data Analysis
+#Author: KH Wong
+#Date Last Modified: 20210521
+#See Readme file for details
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-# Metabolomics Data Analysis for Porites Bleaching 2019 Experiment 
-
-### Metabolite Polarity Selection 
-
-With untargeted LC-MS, metabolites were detected under both negative and positive polarities. To prevent double counting metabolites in my analysis, I took the mean of each polarities across all samples and selected the metabolite that had the strongest ion intensity under that polarity. 
-
-```{r Polarity Selection, echo=TRUE, warning=FALSE, message=FALSE}
+rm(list=ls()) #clears workspace 
 
 #Read in required libraries
 library("reshape")
-#library(plyr)
+library("Rmisc")
 library("dplyr")
 library("tidyverse")
 library("ggplot2")
 library("arsenal")
-library("Rmisc")
 library(gridExtra)
 library(ggpubr)
+# if(!require(devtools)) install.packages("devtools")
+# devtools::install_github("kassambara/factoextra")
+# 
+# install.packages("factoextra")
 library(factoextra)
+
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# 
+# BiocManager::install("ropls")
 library(ropls)
+
+#BiocManager::install("mixOmics")
 library(mixOmics)
+
 library(tidyverse)
 library(ggplot2)
 library(RColorBrewer)
@@ -45,13 +44,44 @@ library(ggcorrplot)
 library(GGally)
 library(broom)
 library(cowplot)
-library(RVAideMemoire)
+
+
+# # Or for the latest dev version:
+# BiocManager::install("M3C")
+# BiocManager::install("pathifier")
+# BiocManager::install("pathview")
+# BiocManager::install("RCy3")
+# 
+# install.packages("rJava")
+# 
+# devtools::install_github("lanagarmire/lilikoi")
+# library(lilikoi)
+# 
+# install.packages("lilikoi")
+# 
+# devtools::install(build_vignettes = T)
+# 
+# library("FELLA")
+# devtools::install_github("b2slab/FELLA")
+
+#Overall Workflow
+# 1. Import Data (Sample info, negative peaks, positive peaks)
+# 2. Make a polarity column for each dataset and integrate into name
+# 3. Bind data sets together 
+# 4. Normalize ion counts to sample input weight and make new dataframe
+# 5. Select active columns
+# 6. Zero inflate values by 1000
+# 7. Log normalization 
+# 8. Preliminary PCA and statistics 
+# 9. Preliminary heatmap 
+# 10. Preliminary PSL-DA
+# 11. PLS-DA Validation and cutoffs 
 
 #Import data
 
-sample.info <- read.csv("../data/Metabolomics/Porites-Kevin_SampleInfo.csv")
-peak.pos <- read.csv("../data/Metabolomics/Peaks_Pos.csv")
-peak.neg <- read.csv("../data/Metabolomics/Peaks_Neg.csv")
+sample.info <- read.csv("data/Metabolomics/Porites-Kevin_SampleInfo.csv")
+peak.pos <- read.csv("data/Metabolomics/Peaks_Pos.csv")
+peak.neg <- read.csv("data/Metabolomics/Peaks_Neg.csv")
 
 #Removing unncessesary columns
 
@@ -113,14 +143,8 @@ names(peak.all)[3] <- "Raw.IonCount"
 
 # Merging weight sample info
 peak.all2 <- merge(peak.all, sample.info, by = "Sample.ID")
-```
 
-
-### Normalization
-
-``` {r Normalization, echo=TRUE, warning=FALSE, message=FALSE}
-
-#Normalization by weight
+# Normalization by weight
 
 peak.all2$Raw.IonCount <- as.numeric(as.character(peak.all2$Raw.IonCount))
 peak.all2$Norm.IonCount <- peak.all2$Raw.IonCount / peak.all2$Weight.mg
@@ -138,15 +162,9 @@ peak.all5 <- log((peak.all4[5:184] + 1000), 2)
 
 norm.data <- cbind(peak.all4[1:4], peak.all5)
 
-```
-
-### Grouped PCA
-
-Code inspired by: 
-- http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/118-principal-component-analysis-in-r-prcomp-vs-princomp/
-- https://github.com/urol-e5/timeseries/blob/master/time_series_analysis/integration_biological.Rmd line 2465
-
-``` {r PCA, echo=TRUE, warning=FALSE, message=FALSE}
+#### PCA ####
+# http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/118-principal-component-analysis-in-r-prcomp-vs-princomp/
+# https://github.com/urol-e5/timeseries/blob/master/time_series_analysis/integration_biological.Rmd line 2465
 
 scaled_pca <-prcomp(norm.data[c(5:184)], scale=TRUE, center=TRUE)
 fviz_eig(scaled_pca)
@@ -159,10 +177,13 @@ pca_data<- scaled_pca%>%
   mutate(PC1.mean = mean(.fittedPC1),
          PC2.mean = mean(.fittedPC2))
 
+detach(package:Rmisc)
+detach(package:plyr)
+
 pca.centroids<- pca_data%>% 
-  dplyr::select(Time, Treatment, PC1.mean, PC2.mean)%>%
-  dplyr::group_by(Time, Treatment)%>%
-  dplyr::summarise(PC1.mean = mean(PC1.mean),
+  select(Time, Treatment, PC1.mean, PC2.mean)%>%
+  group_by(Time, Treatment)%>%
+  summarise(PC1.mean = mean(PC1.mean),
             PC2.mean = mean(PC2.mean))
 
 
@@ -214,7 +235,7 @@ PCA<-ggplot(pca_data, aes(PCA1, PCA2, color=Treatment)) +
         plot.margin = margin(1, 1, 1, 1, "cm"),
         axis.text = element_text(size=18), 
         title = element_text(size=25, face="bold"), 
-        axis.title = element_text(size=18))
+        axis.title = element_text(size=18));PCA
 
 #Add centroids  
 
@@ -232,7 +253,7 @@ PCAcen<-PCA +  geom_polygon(data = hulls, alpha = 0.2, aes(color = Treatment, fi
         plot.margin = margin(1, 1, 1, 1, "cm"),
         axis.text = element_text(size=18), 
         title = element_text(size=25, face="bold"), 
-        axis.title = element_text(size=18))
+        axis.title = element_text(size=18));PCAcen
 
 #Add segments
 
@@ -247,14 +268,10 @@ PCAfull<-PCAcen +
   geom_segment(aes(x = Day37_PC1.mean, y = Day37_PC2.mean, xend = Day52_PC1.mean, yend = Day52_PC2.mean, colour = Treatment), data = segpoints, size=2, arrow = arrow(length=unit(0.5,"cm")), show.legend=FALSE); PCAfull
 
 
-ggsave(filename="../output/Metabolomics/FullPCA_metabolomics.pdf", plot=PCAfull, dpi=300, width=12, height=10, units="in")
-```
+ggsave(filename="output/FullPCA_metabolomics.pdf", plot=PCAfull, dpi=300, width=12, height=10, units="in")
 
-## PLS-DA on Timepoint 3 between each pair
-
-### Control vs Bleached
-
-``` {r PLSDACvsB, echo=TRUE, warning=FALSE, message=FALSE}
+### PLS-DA for only final timepoint 
+#https://rdrr.io/cran/RVAideMemoire/man/PLSDA.VIP.html try this
 
 #Control vs Bleached
 
@@ -269,25 +286,25 @@ D52_CvsB_clean <- na.omit(D52_CvsB)
 #assigning datasets 
 X <- D52_CvsB[4:183]
 Y <- as.factor(D52_CvsB$Treatment) 
-#summary(Y) ## class summary
-#summary(X)
-#dim(X) ## number of samples and features
-#length(Y) ## length of class membership factor = number of samples
+summary(Y) ## class summary
+summary(X)
+dim(X) ## number of samples and features
+length(Y) ## length of class membership factor = number of samples
 
 
 #PLSDA without variable selection
 MyResult.plsda <- plsda(X, Y, ncomp = 2) # 1 Run the method
-#plotIndiv(MyResult.plsda)    # 2 Plot the samples
+plotIndiv(MyResult.plsda)    # 2 Plot the samples
 
-#plotVar(MyResult.plsda, cutoff = 0.7)    
+plotVar(MyResult.plsda, cutoff = 0.7)    
 
 plotIndiv(MyResult.plsda, ind.names = FALSE, legend=TRUE,ellipse = TRUE, title="Day 52 - Bleached vs Control")
 
 MyResult.plsda2 <- plsda(X,Y, ncomp=6) #number of components is #classes-1
-#selectVar(MyResult.plsda2, comp=1)$value
+selectVar(MyResult.plsda2, comp=1)$value
 
-#plotLoadings(MyResult.plsda2, comp = 1, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
-#plotLoadings(MyResult.plsda2, comp = 2, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
+plotLoadings(MyResult.plsda2, comp = 1, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
+plotLoadings(MyResult.plsda2, comp = 2, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
 
 comp1.select.metabolites.all <- data.frame(selectVar(MyResult.plsda2, comp = 1)$value)
 
@@ -304,14 +321,9 @@ auc.plsda = auroc(MyResult.plsda2, roc.comp = 2)
 #VIP Extraction
 D52_CvsB_VIP <- PLSDA.VIP(MyResult.plsda2)
 D52_CvsB_VIP_DF <- as.data.frame(D52_CvsB_VIP[["tab"]])
-D52_CvsB_VIP_DF
-```
 
+######Control vs Partial Mortality
 
-
-### Control vs Partial Mortality
-
-``` {r PLSDACvsP, echo=TRUE, warning=FALSE, message=FALSE}
 D52_CvsP <- norm.data_2 %>%
   filter(Time == "Day52") %>%
   filter(Treatment != "Bleached_Hot")
@@ -321,24 +333,25 @@ D52_CvsP_clean <- na.omit(D52_CvsP)
 #assigning datasets 
 X <- D52_CvsP[4:183]
 Y <- as.factor(D52_CvsP$Treatment) 
-#summary(Y) ## class summary
-#summary(X)
-#dim(X) ## number of samples and features
-#length(Y) ## length of class membership factor = number of samples
+summary(Y) ## class summary
+summary(X)
+dim(X) ## number of samples and features
+length(Y) ## length of class membership factor = number of samples
+
 
 #PLSDA without variable selection
 MyResult.plsda <- plsda(X, Y, ncomp = 2) # 1 Run the method
-#plotIndiv(MyResult.plsda)    # 2 Plot the samples
+plotIndiv(MyResult.plsda)    # 2 Plot the samples
 
-#plotVar(MyResult.plsda, cutoff = 0.7)    
+plotVar(MyResult.plsda, cutoff = 0.7)    
 
 plotIndiv(MyResult.plsda, ind.names = FALSE, legend=TRUE,ellipse = TRUE, title="Day 52 - Bleached vs Control")
 
 MyResult.plsda2 <- plsda(X,Y, ncomp=6) #number of components is #classes-1
-#selectVar(MyResult.plsda2, comp=1)$value
+selectVar(MyResult.plsda2, comp=1)$value
 
-#plotLoadings(MyResult.plsda2, comp = 1, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
-#plotLoadings(MyResult.plsda2, comp = 2, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
+plotLoadings(MyResult.plsda2, comp = 1, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
+plotLoadings(MyResult.plsda2, comp = 2, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
 
 comp1.select.metabolites.all <- data.frame(selectVar(MyResult.plsda2, comp = 1)$value)
 
@@ -355,13 +368,8 @@ auc.plsda = auroc(MyResult.plsda2, roc.comp = 2)
 #VIP Extraction
 D52_CvsP_VIP <- PLSDA.VIP(MyResult.plsda2)
 D52_CvsP_VIP_DF <- as.data.frame(D52_CvsP_VIP[["tab"]])
-D52_CvsP_VIP_DF
-```
 
-
-### Bleached vs Partial Mortality
-
-``` {r PLSDABvsP, echo=TRUE, warning=FALSE, message=FALSE}
+######Bleached vs Partial Mortality
 
 D52_BvsP <- norm.data_2 %>%
   filter(Time == "Day52") %>%
@@ -372,25 +380,25 @@ D52_BvsP_clean <- na.omit(D52_BvsP)
 #assigning datasets 
 X <- D52_BvsP[4:183]
 Y <- as.factor(D52_BvsP$Treatment) 
-#summary(Y) ## class summary
-#summary(X)
-#dim(X) ## number of samples and features
-#length(Y) ## length of class membership factor = number of samples
+summary(Y) ## class summary
+summary(X)
+dim(X) ## number of samples and features
+length(Y) ## length of class membership factor = number of samples
 
 
 #PLSDA without variable selection
 MyResult.plsda <- plsda(X, Y, ncomp = 2) # 1 Run the method
-#plotIndiv(MyResult.plsda)    # 2 Plot the samples
+plotIndiv(MyResult.plsda)    # 2 Plot the samples
 
-#plotVar(MyResult.plsda, cutoff = 0.7)    
+plotVar(MyResult.plsda, cutoff = 0.7)    
 
-plotIndiv(MyResult.plsda, ind.names = FALSE, legend=TRUE,ellipse = TRUE, title="Day 52 - Bleached vs Partial Mortality")
+plotIndiv(MyResult.plsda, ind.names = FALSE, legend=TRUE,ellipse = TRUE, title="Day 52 - Bleached vs Control")
 
 MyResult.plsda2 <- plsda(X,Y, ncomp=6) #number of components is #classes-1
-#selectVar(MyResult.plsda2, comp=1)$value
+selectVar(MyResult.plsda2, comp=1)$value
 
-#plotLoadings(MyResult.plsda2, comp = 1, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
-#plotLoadings(MyResult.plsda2, comp = 2, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
+plotLoadings(MyResult.plsda2, comp = 1, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
+plotLoadings(MyResult.plsda2, comp = 2, contrib = 'max', method = 'median', ndisplay = 50) #top 50 metabolites contributing to variation on component 1
 
 comp1.select.metabolites.all <- data.frame(selectVar(MyResult.plsda2, comp = 1)$value)
 
@@ -407,13 +415,7 @@ auc.plsda = auroc(MyResult.plsda2, roc.comp = 2)
 #VIP Extraction
 D52_BvsP_VIP <- PLSDA.VIP(MyResult.plsda2)
 D52_BvsP_VIP_DF <- as.data.frame(D52_BvsP_VIP[["tab"]])
-D52_BvsP_VIP_DF
-```
 
-
-### VIP Comparisons for Final Timepoint
-
-``` {r VIP, echo=TRUE, warning=FALSE, message=FALSE}
 
 ####### Overlaps for VIPs >1 #########
 
@@ -442,7 +444,6 @@ D52_CvsB_VIP_1 %>%
   theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
 
-
 D52_CvsP_VIP_1 %>%
   arrange(VIP) %>%
   ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
@@ -454,43 +455,42 @@ D52_CvsP_VIP_1 %>%
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
 
 
+
+
 ### Compare for Venn Diagram (https://github.com/gaospecial/ggVennDiagram)
 
-#Open this part in Repo
+nrow(D52_CvsB_VIP_1)
+nrow(D52_CvsP_VIP_1)
 
-# nrow(D52_CvsB_VIP_1)
-# nrow(D52_CvsP_VIP_1)
-# 
-# library("VennDiagram")
-# 
-# venn.x <- list(
-#   D52_CvsB = sample(D52_CvsB_VIP_1$Metabolite), 
-#   D52_CvsP = sample(D52_CvsP_VIP_1$Metabolite)
-# )
-# 
-# myCol <- c("#8B0046", "#468B00")
-# 
-# venn.diagram(venn.x,
-#              filename = 'output/Metabolomics/D52_BvsP_venn.png',
-#              output = TRUE,
-#              height = 480, 
-#              width = 480,
-#              resolution = 300,
-#              category.names = c("Bleached", "Partial Mortality"),
-#              lwd = 2,
-#              col = c("#8B0046", "#468B00"),
-#              fill = c(alpha("#8B0046",0.3), alpha("#468B00", 0.3)),
-#              cex = 0.5,
-#              fontfamily = "sans",
-#              fontface = "bold",
-#              cat.cex = 0.5,
-#              cat.default.pos = "outer",
-#              cat.pos = c(12, -12),
-#              cat.dist = c(-0.45, -0.45),
-#              cat.fontfamily = "sans",
-#              cat.fontface = "bold"
-#              )
-```
+library("VennDiagram")
+
+venn.x <- list(
+  D52_CvsB = sample(D52_CvsB_VIP_1$Metabolite), 
+  D52_CvsP = sample(D52_CvsP_VIP_1$Metabolite)
+)
+
+myCol <- c("#8B0046", "#468B00")
+
+venn.diagram(venn.x,
+             filename = 'output/Metabolomics/D52_BvsP_venn.png',
+             output = TRUE,
+             height = 480, 
+             width = 480,
+             resolution = 300,
+             category.names = c("Bleached", "Partial Mortality"),
+             lwd = 2,
+             col = c("#8B0046", "#468B00"),
+             fill = c(alpha("#8B0046",0.3), alpha("#468B00", 0.3)),
+             cex = 0.5,
+             fontfamily = "sans",
+             fontface = "bold",
+             cat.cex = 0.5,
+             cat.default.pos = "outer",
+             cat.pos = c(12, -12),
+             cat.dist = c(-0.45, -0.45),
+             cat.fontfamily = "sans",
+             cat.fontface = "bold"
+             )
 
 
 
