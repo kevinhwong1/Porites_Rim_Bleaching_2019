@@ -567,7 +567,7 @@ D52_CvsP_t.test.sig.down <- D52_CvsP_t.test.sig %>% filter(estimate1 > estimate2
 
 ``` {r VIP-test, echo=TRUE, warning=FALSE, message=FALSE}
 
-# Selecting metbolites that were validated by the t-test for each up and down accumulated
+# Selecting metabolites that were validated by the t-test for each up and down accumulated
 D52_CvsB_VIP_sig_up <- subset(D52_CvsB_VIP_1, D52_CvsB_VIP_1$Metabolite %in% D52_CvB_t.test.sig.up$Metabolite)
 D52_CvsB_VIP_sig_down <- subset(D52_CvsB_VIP_1, D52_CvsB_VIP_1$Metabolite %in% D52_CvB_t.test.sig.down$Metabolite)
 
@@ -635,3 +635,91 @@ D52_All_VIP_plot
 
 ```
 
+
+### VIP plotting after t-test validation and comparing overlapping metabolites
+
+``` {r VIP-test, echo=TRUE, warning=FALSE, message=FALSE}
+
+# Up regulated metabolites that overlap between B and P
+
+
+
+# Up regulated metabolites that are unique to B
+
+# Up regulated metabolites that are unique to P
+
+# Down regulated metabolites that overlap between B and P
+
+# Down regulated metabolites that are unique to B and 
+
+# Down regulated metabolites that are unique to P
+
+
+
+# Up regulated metabolites that overlap between B and P
+D52_CvsB_VIP_sig_up <- subset(D52_CvsB_VIP_1, D52_CvsB_VIP_1$Metabolite %in% D52_CvB_t.test.sig.up$Metabolite)
+D52_CvsB_VIP_sig_down <- subset(D52_CvsB_VIP_1, D52_CvsB_VIP_1$Metabolite %in% D52_CvB_t.test.sig.down$Metabolite)
+
+D52_CvsP_VIP_sig_up <- subset(D52_CvsP_VIP_1, D52_CvsP_VIP_1$Metabolite %in% D52_CvsP_t.test.sig.up$Metabolite)
+D52_CvsP_VIP_sig_down <- subset(D52_CvsP_VIP_1, D52_CvsP_VIP_1$Metabolite %in% D52_CvsP_t.test.sig.down$Metabolite)
+
+# Plotting
+
+D52_CvsB_VIP_UP <- D52_CvsB_VIP_sig_up %>%
+  arrange(VIP) %>%
+  ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point() +
+  xlim(1.2, 2) +
+  ylab("Accumulated") +
+  xlab("") +
+  ggtitle("Bleached") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) 
+
+D52_CvsB_VIP_DOWN <- D52_CvsB_VIP_sig_down %>%
+  arrange(VIP) %>%
+  ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point() +
+  xlim(1.2, 2) +
+  ylab("Depleted") +
+  xlab("VIP Score") +
+#  ggtitle("Bleached: Depleted") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) 
+
+D52_CvsP_VIP_UP <- D52_CvsP_VIP_sig_up %>%
+  arrange(VIP) %>%
+  ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point() +
+  xlim(1.2, 2) +
+  ylab("") +
+  xlab("") +
+  ggtitle("Partial Mortality") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+
+D52_CvsP_VIP_DOWN <- D52_CvsP_VIP_sig_down %>%
+  arrange(VIP) %>%
+  ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point() +
+  xlim(1.2, 2) +
+  ylab("") +
+  xlab("VIP Score") +
+#  ggtitle("Partial Mortality: Depleted") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+
+D52_All_VIP_plot <- plot_grid(D52_CvsB_VIP_UP, D52_CvsP_VIP_UP, D52_CvsB_VIP_DOWN, D52_CvsP_VIP_DOWN, 
+                              align = "v", 
+                              ncol = 2, 
+                              rel_heights = c(0.95, 0.35), 
+                              labels = c("A", "B", "C", "D"))
+
+D52_All_VIP_plot
+#ggsave(filename="../output/Metabolomics/Day52_VIP.pdf", plot=D52_All_VIP_plot, dpi=300, width=7, height=9, units="in")
+
+```

@@ -1,0 +1,10 @@
+Analysis of Variance Table
+
+Response: Cells.cm2.x6
+          Df  Sum Sq Mean Sq F value    Pr(>F)    
+Group      2  2.9617  1.4808 20.4476 1.167e-06 ***
+Day        2 10.9398  5.4699 75.5299 1.312e-13 ***
+Group:Day  4  0.4764  0.1191  1.6446    0.1843    
+Residuals 36  2.6071  0.0724                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1

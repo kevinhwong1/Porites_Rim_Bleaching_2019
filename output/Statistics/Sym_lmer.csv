@@ -1,0 +1,7 @@
+Type II Analysis of Variance Table with Satterthwaite's method
+           Sum Sq Mean Sq NumDF DenDF F value    Pr(>F)    
+Group      2.4141  1.2071     2    12  17.927 0.0002486 ***
+Day       10.9398  5.4699     2    24  81.240 2.065e-11 ***
+Group:Day  0.4764  0.1191     4    24   1.769 0.1680518    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1

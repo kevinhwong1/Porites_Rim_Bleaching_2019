@@ -782,6 +782,11 @@ resp.data.T2 <- read.csv("output/Colony_Photo_Resp_Output/Rim_Respdata.T2.csv")
 resp.data.T3 <- read.csv("output/Colony_Photo_Resp_Output/Rim_Respdata.T3.csv")
 sample.info.col <- read.csv("data/Metadata/Colony_Sample_Info.csv")
 
+# Adding Day column
+
+resp.data.T1$Day <- 0
+resp.data.T2$Day <- 37
+resp.data.T3$Day <- 52
 
 resp.data.all <- rbind(resp.data.T1,resp.data.T2, resp.data.T3)
 resp.data.all$PR <- resp.data.all$Pgross_umol.cm2.hr / -(resp.data.all$Rdark_umol.cm2.hr)
@@ -791,6 +796,13 @@ resp.data.select <- resp.data.all.info %>%
 
 resp.data.select$Group <- factor(resp.data.select$Group, levels = c('Control', 'Bleached', 'Mortality')) #re-ordering factos
 resp.data.select$abs.Rdark_umol.cm2.hr <- -(resp.data.select$Rdark_umol.cm2.hr)
+
+resp.final <- resp.data.select %>%
+  select("Fragment.ID","Day", "Group", "Pnet_umol.cm2.hr", "Pgross_umol.cm2.hr", "abs.Rdark_umol.cm2.hr", "PR")
+resp.final$Day <- as.factor(resp.final$Day)
+resp.final$Group <- as.factor(resp.final$Group)
+write.csv(resp.final, "output/Physiology/Resp.Calc.csv")
+
 #Calculate means
 AllMeans <- ddply(resp.data.select, c('Group','Timepoint'), summarize,
                   N = sum(!is.na(Pnet_umol.cm2.hr)), # sample size
@@ -807,7 +819,7 @@ AllMeans <- ddply(resp.data.select, c('Group','Timepoint'), summarize,
                   PR.mean  = mean(PR, na.rm=T),
                   PR.se = sd(PR, na.rm=T)/sqrt(N))
 #write Results
-write.csv(resp.data.select, file="data/Colony_Respirometry/SelectRates.Rim.csv") # raw data
+
 write.csv(AllMeans, file="data/Colony_Respirometry/AllMeans.Rim.csv") # Mean data
 
 

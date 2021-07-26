@@ -1,0 +1,15 @@
+ Group     Day lsmean   SE df lower.CL upper.CL .group
+ Bleached  52   0.214 0.12 36  -0.1402    0.568  a    
+ Bleached  37   0.343 0.12 36  -0.0114    0.697  a    
+ Mortality 37   0.370 0.12 36   0.0162    0.724  ab   
+ Mortality 52   0.378 0.12 36   0.0237    0.732  ab   
+ Control   52   0.907 0.12 36   0.5533    1.261   bc  
+ Control   37   1.112 0.12 36   0.7585    1.466    cd 
+ Bleached  0    1.496 0.12 36   1.1416    1.850     de
+ Mortality 0    1.527 0.12 36   1.1728    1.881     de
+ Control   0    1.765 0.12 36   1.4107    2.119      e
+
+Confidence level used: 0.95 
+Conf-level adjustment: sidak method for 9 estimates 
+P value adjustment: tukey method for comparing a family of 9 estimates 
+significance level used: alpha = 0.05 
