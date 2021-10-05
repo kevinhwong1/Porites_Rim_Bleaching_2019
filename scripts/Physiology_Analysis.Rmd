@@ -62,6 +62,7 @@ library("segmented")
 library("plotrix")
 library("lubridate")
 library(lsmeans)
+library(patchwork)
 
 # Load metadata
 vial.meta <- read.csv("../data/Physiology/Vial_Metadata.csv")
@@ -548,6 +549,11 @@ master$Day <- as.factor(master$Day)
 master$Group <- as.factor(master$Group)
 master$Fragment.ID <- as.factor(master$Fragment.ID)
 
+# Remove surface area and cells 
+
+master <- master %>%
+  dplyr::select(-c(Surface_Area_cm2, Cells, ChlC2.ugcell, ChlC2.ugcm2))
+
 master
 ```
 
@@ -1012,10 +1018,9 @@ anova(PR_lmer, type="II")
 
 ```{r PCA, echo=TRUE, warning=FALSE, message=FALSE}
 
-master.pca <- master %>%
-  dplyr::select(-(Surface_Area_cm2)) 
+master.pca <- master
 
-scaled_pca <-prcomp(master.pca[c(4:20)], scale=TRUE, center=TRUE)
+scaled_pca <-prcomp(master.pca[c(4:18)], scale=TRUE, center=TRUE)
 fviz_eig(scaled_pca)
 
 coral_info<-master.pca[c(2,3)]
@@ -1035,7 +1040,7 @@ pca.centroids<- pca_data%>%
 #Examine PERMANOVA results.  
 
 # scale data
-vegan <- scale(master.pca[c(4:20)])
+vegan <- scale(master.pca[c(4:18)])
 
 # PerMANOVA 
 permanova<-adonis(vegan ~ Day*Group, data = master.pca, method='eu')
@@ -1142,5 +1147,9 @@ FinalFullPCA<-ggdraw(PCAfull) + #theme_half_open(12)) +
   draw_plot(biplotArrows, .05, .6, .4, .4); FinalFullPCA #x, y, w, h
 
 ggsave(filename="../output/Physiology/FullPCA_phys.pdf", plot=FinalFullPCA, dpi=300, width=12, height=10, units="in")
+
+
+FinalFullPCA2 <- 
+
 
 ```

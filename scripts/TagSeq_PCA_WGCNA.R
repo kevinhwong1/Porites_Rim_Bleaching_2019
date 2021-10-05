@@ -78,12 +78,10 @@ all(rownames(treatmentinfo$sample_id_full) == colnames(gcount_filt))
 
 #Create a DESeqDataSet design from gene count matrix and labels. Here we set the design to look at time_point to test for any differences in gene expression across timepoints.
 
-
-
 #Set DESeq2 design
 gdds <- DESeqDataSetFromMatrix(countData = round(gcount_filt),
                                colData = treatmentinfo,
-                               design = ~Group+Day)
+                               design = ~Fragment.ID + Group*Day)
 
 #### Log-transform the count data
 #First we are going to log-transform the data using a variance stabilizing transforamtion (VST). This is only for visualization purposes. Essentially, this is roughly similar to putting the data on the log2 scale. It will deal with the sampling variability of low counts by calculating within-group variability (if blind=FALSE). Importantly, it does not use the design to remove variation in the data, and so can be used to examine if there may be any variability do to technical factors such as extraction batch effects.
@@ -206,3 +204,9 @@ PCAfull<-PCAcen +
   geom_segment(aes(x = Day37_PC1.mean, y = Day37_PC2.mean, xend = Day52_PC1.mean, yend = Day52_PC2.mean, colour = Group), data = segpoints, size=2, arrow = arrow(length=unit(0.5,"cm")), show.legend=FALSE); PCAfull
 
 ggsave(filename="output/TagSeq/Full_PCA_TagSeq.pdf", plot=PCAfull, dpi=300, width=12, height=10, units="in")
+
+
+
+
+
+

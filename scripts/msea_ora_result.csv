@@ -1,0 +1,4 @@
+"","total","expected","hits","Raw p","Holm p","FDR"
+"Amino acids and peptides",723,0.0291,6,6.37e-14,1.55e-11,1.55e-11
+"Nicotinamides",3,0.000121,1,0.000121,0.0294,0.0148
+"Organic dicarboxylic acids",23,0.000927,1,0.000927,0.224,0.0754

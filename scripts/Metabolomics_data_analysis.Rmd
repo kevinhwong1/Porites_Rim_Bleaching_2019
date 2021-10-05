@@ -46,6 +46,10 @@ library(GGally)
 library(broom)
 library(cowplot)
 library(RVAideMemoire)
+library(arsenal)
+library(patchwork)
+library(tidyr)
+library(MetaboAnalystR)
 
 #Import data
 
@@ -201,20 +205,20 @@ PCA<-ggplot(pca_data, aes(PCA1, PCA2, color=Treatment)) +
   scale_shape_manual(values=c(15, 17, 19)) +
   theme_classic()+
   ylim(-10,10)+
-  xlim(-20,20)+
+  xlim(-15,15)+
   ylab(percentage[2])+
   xlab(percentage[1])+
-  geom_text(x=9, y=-8.25, label=paste("p(Time)=", z_pca$`Pr(>F)`[1]), size=4, color=ifelse(z_pca$`Pr(>F)`[1] < 0.05, "black", "darkgray")) + 
-  geom_text(x=9, y=-9, label=paste("p(Treatment)=", z_pca$`Pr(>F)`[2]), size=4, color=ifelse(z_pca$`Pr(>F)`[2] < 0.05, "black", "darkgray")) + 
-  geom_text(x=9, y=-9.75, label=paste("p(Time x Treatment)=", z_pca$`Pr(>F)`[3]), size=4, color=ifelse(z_pca$`Pr(>F)`[3] < 0.05, "black", "darkgray")) + 
-  theme(legend.text = element_text(size=8), 
+  geom_text(x=9, y=-8.25, label=paste("p(Time)=", z_pca$`Pr(>F)`[1]), size=7, color=ifelse(z_pca$`Pr(>F)`[1] < 0.05, "black", "darkgray")) + 
+  geom_text(x=9, y=-9, label=paste("p(Treatment)=", z_pca$`Pr(>F)`[2]), size=7, color=ifelse(z_pca$`Pr(>F)`[2] < 0.05, "black", "darkgray")) + 
+  geom_text(x=9, y=-9.75, label=paste("p(Time x Treatment)=", z_pca$`Pr(>F)`[3]), size=7, color=ifelse(z_pca$`Pr(>F)`[3] < 0.05, "black", "darkgray")) + 
+  theme(legend.text = element_text(size=17), 
         legend.position="none",
         plot.background = element_blank(),
-        legend.title = element_text(size=10), 
+        legend.title = element_text(size=22), 
         plot.margin = margin(1, 1, 1, 1, "cm"),
-        axis.text = element_text(size=18), 
+        axis.text = element_text(size=27), 
         title = element_text(size=25, face="bold"), 
-        axis.title = element_text(size=18))
+        axis.title = element_text(size=30))
 
 #Add centroids  
 
@@ -225,14 +229,16 @@ PCAcen<-PCA +  geom_polygon(data = hulls, alpha = 0.2, aes(color = Treatment, fi
   scale_colour_manual(values=c("#46008B", "#8B0046", "#468B00"), breaks = c("Control_Ambient","Bleached_Hot", "Mortality_Hot"), labels = c("Control", "Bleached", "Partial Mortality")) +
   scale_fill_manual(values=c("#46008B", "#8B0046", "#468B00"), breaks = c("Control_Ambient","Bleached_Hot", "Mortality_Hot"), labels = c("Control", "Bleached", "Partial Mortality")) + 
   scale_shape_manual(values=c(15, 17, 19)) +
-  theme(legend.text = element_text(size=8), 
-        legend.position=c(0.95,0.8),
+  theme(legend.text = element_text(size=17), 
+        legend.position=c(0.9,0.8),
         plot.background = element_blank(),
-        legend.title = element_text(size=10), 
+        legend.title = element_text(size=22), 
         plot.margin = margin(1, 1, 1, 1, "cm"),
-        axis.text = element_text(size=18), 
+        axis.text = element_text(size=27), 
         title = element_text(size=25, face="bold"), 
-        axis.title = element_text(size=18))
+        axis.title = element_text(size=30))
+
+
 
 #Add segments
 
@@ -247,7 +253,7 @@ PCAfull<-PCAcen +
   geom_segment(aes(x = Day37_PC1.mean, y = Day37_PC2.mean, xend = Day52_PC1.mean, yend = Day52_PC2.mean, colour = Treatment), data = segpoints, size=2, arrow = arrow(length=unit(0.5,"cm")), show.legend=FALSE); PCAfull
 
 
-ggsave(filename="../output/Metabolomics/FullPCA_metabolomics.pdf", plot=PCAfull, dpi=300, width=12, height=10, units="in")
+ggsave(filename="../output/Metabolomics/FullPCA_metabolomics.pdf", plot=PCAfull, dpi=300, width=10, height=10, units="in")
 ```
 
 ## PLS-DA on Timepoint 3 between each pair
@@ -453,6 +459,17 @@ D52_CvsP_VIP_1 %>%
   theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
 
+D52_BvsP_VIP_1 %>%
+  arrange(VIP) %>%
+  ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
+  geom_point() +
+  ylab("Metabolite") +
+  xlab("VIP Score") +
+  ggtitle("Bleached vs Partial Mortality") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+
+
 
 ### Compare for Venn Diagram (https://github.com/gaospecial/ggVennDiagram)
 
@@ -493,7 +510,7 @@ D52_CvsP_VIP_1 %>%
 ```
 
 ### T-test validation: Control vs Bleached
-``` {r t-test validation, echo=TRUE, warning=FALSE, message=FALSE}
+``` {r t-test validationCB, echo=TRUE, warning=FALSE, message=FALSE}
 
 # Control vs Bleached
 
@@ -516,20 +533,28 @@ D52_CvB_t.test <-do(D52_CvB_VIP_Select, tidy(t.test(.$Count ~ .$Treatment,
                  conf.level = 0.95
                  )))
 
+#adjust p value for the number of comparisons
+D52_CvB_t.test$p.adj<-p.adjust(D52_CvB_t.test$p.value, method=c("fdr"), n=length(D52_CvsB_VIP_1$Metabolite)) #length = number of metabolites tested, false discovery rate method
+
 # Filter for significantly different metabolites (p < 0.05)
-D52_CvB_t.test.sig <- D52_CvB_t.test %>% filter(p.value <= 0.05)
+D52_CvB_t.test.fdr <- D52_CvB_t.test %>% filter(p.adj <= 0.05)
+length(D52_CvB_t.test.fdr$Metabolite) #10
+
+# # Filter for significantly different metabolites (p < 0.05)
+# D52_CvB_t.test.sig <- D52_CvB_t.test %>% filter(p.value <= 0.05)
+# length(D52_CvB_t.test.sig$Metabolite) #went from 32 to 10 with p value adjustment
 
 # Filter for metabolites accumulated compared to control
-D52_CvB_t.test.sig.up <- D52_CvB_t.test.sig %>% filter(estimate1 > estimate2)
+D52_CvB_t.test.sig.up <- D52_CvB_t.test.fdr %>% filter(estimate1 > estimate2)
 
 # Filter for metabolites depleted compared to control
-D52_CvB_t.test.sig.down <- D52_CvB_t.test.sig %>% filter(estimate1 < estimate2)
+D52_CvB_t.test.sig.down <- D52_CvB_t.test.fdr %>% filter(estimate1 < estimate2)
 
 ```
 
 
 ## T-test validation: Control vs Partial Mortality
-``` {r t-test_validation, echo=TRUE, warning=FALSE, message=FALSE}
+``` {r t-test_validationCP, echo=TRUE, warning=FALSE, message=FALSE}
 
 # Control vs Bleached
 
@@ -543,7 +568,7 @@ D52_CvsP_gather <- dplyr::group_by(D52_CvsP_gather, Metabolite)
 # Select metabolites only present from the PLS-DA with VIPs >1
 D52_CvsP_VIP_Select <- subset(D52_CvsP_gather, D52_CvsP_gather$Metabolite %in% D52_CvsP_VIP_1$Metabolite)
 
-#Looped t-test for all metabolites with VIPs >1, estimate 1 = Control_Ambient, estimate 2 = Mortality_Hot
+#Looped t-test for all metabolites with VIPs >1, estimate 1 = Control_Ambient, estimate 2 = Bleached_Hot
 D52_CvsP_t.test <-do(D52_CvsP_VIP_Select, tidy(t.test(.$Count ~ .$Treatment,
                  alternative = "two.sided",
                  mu = 0,
@@ -552,16 +577,69 @@ D52_CvsP_t.test <-do(D52_CvsP_VIP_Select, tidy(t.test(.$Count ~ .$Treatment,
                  conf.level = 0.95
                  )))
 
+#adjust p value for the number of comparisons
+D52_CvsP_t.test$p.adj<-p.adjust(D52_CvsP_t.test$p.value, method=c("fdr"), n=length(D52_CvsP_VIP_1$Metabolite)) #length = number of metabolites tested, false discovery rate method
+
 # Filter for significantly different metabolites (p < 0.05)
-D52_CvsP_t.test.sig <- D52_CvsP_t.test %>% filter(p.value <= 0.05)
+D52_CvsP_t.test.fdr <- D52_CvsP_t.test %>% filter(p.adj <= 0.05)
+length(D52_CvsP_t.test.fdr$Metabolite) #34
+
+# Filter for significantly different metabolites (p < 0.05)
+# D52_CvsP_t.test.sig <- D52_CvsP_t.test %>% filter(p.value <= 0.05)
+# length(D52_CvsP_t.test.sig$Metabolite) #went from 38 to 34 with p value adjustment
 
 # Filter for metabolites accumulated compared to control
-D52_CvsP_t.test.sig.up <- D52_CvsP_t.test.sig %>% filter(estimate1 < estimate2)
+D52_CvsP_t.test.sig.up <- D52_CvsP_t.test.fdr %>% filter(estimate1 < estimate2)
 
 # Filter for metabolites depleted compared to control
-D52_CvsP_t.test.sig.down <- D52_CvsP_t.test.sig %>% filter(estimate1 > estimate2)
+D52_CvsP_t.test.sig.down <- D52_CvsP_t.test.fdr %>% filter(estimate1 > estimate2)
 
 ```
+
+
+## T-test validation: Bleached vs Partial Mortality
+``` {r t-test_validationBP, echo=TRUE, warning=FALSE, message=FALSE}
+
+# Bleach vs Partial Mortality
+
+## Gather data frame and group by metabolite 
+D52_BvsP_gather <- D52_BvsP_clean %>% gather(key = "Metabolite", value = "Count", -Fragment.ID, -Time, -Treatment) %>%
+  dplyr::select("Treatment", "Metabolite", "Count")
+
+D52_BvsP_gather$Treatment <- as.factor(D52_BvsP_gather$Treatment)
+D52_BvsP_gather <- dplyr::group_by(D52_BvsP_gather, Metabolite)
+
+# Select metabolites only present from the PLS-DA with VIPs >1
+D52_BvsP_VIP_Select <- subset(D52_BvsP_gather, D52_BvsP_gather$Metabolite %in% D52_BvsP_VIP_1$Metabolite)
+
+#Looped t-test for all metabolites with VIPs >1, estimate 1 = Bleached_Hot, estimate 2 = Mortality_Hot
+D52_BvsP_t.test <-do(D52_BvsP_VIP_Select, tidy(t.test(.$Count ~ .$Treatment,
+                 alternative = "two.sided",
+                 mu = 0,
+                 paired = FALSE,
+                 var.equal = FALSE,
+                 conf.level = 0.95
+                 )))
+
+#adjust p value for the number of comparisons
+D52_BvsP_t.test$p.adj<-p.adjust(D52_BvsP_t.test$p.value, method=c("fdr"), n=length(D52_BvsP_VIP_1$Metabolite)) #length = number of metabolites tested, false discovery rate method
+
+# Filter for significantly different metabolites (p < 0.05)
+D52_BvsP_t.test.fdr <- D52_BvsP_t.test %>% filter(p.adj <= 0.05)
+length(D52_BvsP_t.test.fdr$Metabolite) #
+
+# Filter for significantly different metabolites (p < 0.05)
+# D52_CvsP_t.test.sig <- D52_CvsP_t.test %>% filter(p.value <= 0.05)
+# length(D52_CvsP_t.test.sig$Metabolite) #went from 38 to 34 with p value adjustment
+
+# Filter for metabolites accumulated compared to control
+D52_CvsP_t.test.sig.up <- D52_CvsP_t.test.fdr %>% filter(estimate1 < estimate2)
+
+# Filter for metabolites depleted compared to control
+D52_CvsP_t.test.sig.down <- D52_CvsP_t.test.fdr %>% filter(estimate1 > estimate2)
+
+```
+
 
 ### VIP plotting after t-test validation
 
@@ -573,6 +651,12 @@ D52_CvsB_VIP_sig_down <- subset(D52_CvsB_VIP_1, D52_CvsB_VIP_1$Metabolite %in% D
 
 D52_CvsP_VIP_sig_up <- subset(D52_CvsP_VIP_1, D52_CvsP_VIP_1$Metabolite %in% D52_CvsP_t.test.sig.up$Metabolite)
 D52_CvsP_VIP_sig_down <- subset(D52_CvsP_VIP_1, D52_CvsP_VIP_1$Metabolite %in% D52_CvsP_t.test.sig.down$Metabolite)
+
+
+write.csv(D52_CvsB_VIP_sig_up, "../output/Metabolomics/D52_CvsB_VIP_sig_up.csv")
+write.csv(D52_CvsB_VIP_sig_down, "../output/Metabolomics/D52_CvsB_VIP_sig_down.csv")
+write.csv(D52_CvsP_VIP_sig_up, "../output/Metabolomics/D52_CvsP_VIP_sig_up.csv")
+write.csv(D52_CvsP_VIP_sig_down, "../output/Metabolomics/D52_CvsP_VIP_sig_down.csv")
 
 # Plotting
 
@@ -638,88 +722,247 @@ D52_All_VIP_plot
 
 ### VIP plotting after t-test validation and comparing overlapping metabolites
 
-``` {r VIP-test, echo=TRUE, warning=FALSE, message=FALSE}
+``` {r Plotting, echo=TRUE, warning=FALSE, message=FALSE}
 
 # Up regulated metabolites that overlap between B and P
 
+D52_overlap_BvsP_up_1 <- as.data.frame(intersect(D52_CvsB_VIP_sig_up$Metabolite, D52_CvsP_VIP_sig_up$Metabolite))
+names(D52_overlap_BvsP_up_1)[1] <- 'Metabolite'
+D52_overlap_BvsP_up_2 <- merge(D52_overlap_BvsP_up_1, D52_CvsB_VIP_sig_up, by="Metabolite")
+D52_overlap_BvsP_up_VIP <- merge(D52_overlap_BvsP_up_2, D52_CvsP_VIP_sig_up, by="Metabolite")
+names(D52_overlap_BvsP_up_VIP)[2] <- 'Bleached'
+names(D52_overlap_BvsP_up_VIP)[3] <- 'Partial Mortality'
 
+D52_overlap_BvsP_up_VIP_comb <- gather(D52_overlap_BvsP_up_VIP, key = "Group", value = "VIP", 'Bleached', 'Partial Mortality')
 
 # Up regulated metabolites that are unique to B
 
+D52_uniqueB_BvsP_up <- as.data.frame(setdiff(D52_CvsB_VIP_sig_up$Metabolite, D52_CvsP_VIP_sig_up$Metabolite))
+names(D52_uniqueB_BvsP_up)[1] <- 'Metabolite'
+D52_uniqueB_BvsP_up_VIP <- merge(D52_uniqueB_BvsP_up, D52_CvsB_VIP_sig_up, by="Metabolite")
+
 # Up regulated metabolites that are unique to P
+
+D52_uniqueP_BvsP_up <- as.data.frame(setdiff(D52_CvsP_VIP_sig_up$Metabolite, D52_CvsB_VIP_sig_up$Metabolite))
+names(D52_uniqueP_BvsP_up)[1] <- 'Metabolite'
+D52_uniqueP_BvsP_up_VIP <- merge(D52_uniqueP_BvsP_up, D52_CvsP_VIP_sig_up, by="Metabolite")
 
 # Down regulated metabolites that overlap between B and P
 
-# Down regulated metabolites that are unique to B and 
+D52_overlap_BvsP_down_1 <- as.data.frame(intersect(D52_CvsB_VIP_sig_down$Metabolite, D52_CvsP_VIP_sig_down$Metabolite))
+names(D52_overlap_BvsP_down_1)[1] <- 'Metabolite'
+D52_overlap_BvsP_down_2 <- merge(D52_overlap_BvsP_down_1, D52_CvsB_VIP_sig_down, by="Metabolite")
+D52_overlap_BvsP_down_VIP <- merge(D52_overlap_BvsP_down_2, D52_CvsP_VIP_sig_down, by="Metabolite")
+names(D52_overlap_BvsP_down_VIP)[2] <- 'Bleached'
+names(D52_overlap_BvsP_down_VIP)[3] <- 'Partial Mortality'
+
+D52_overlap_BvsP_down_VIP_comb <- gather(D52_overlap_BvsP_down_VIP, key = "Group", value = "VIP", 'Bleached', 'Partial Mortality')
+
+
+# Down regulated metabolites that are unique to B 
+# There are none 
 
 # Down regulated metabolites that are unique to P
 
+D52_uniqueP_BvsP_down <- as.data.frame(setdiff(D52_CvsP_VIP_sig_down$Metabolite, D52_CvsB_VIP_sig_down$Metabolite))
+names(D52_uniqueP_BvsP_down)[1] <- 'Metabolite'
+D52_uniqueP_BvsP_down_VIP <- merge(D52_uniqueP_BvsP_down, D52_CvsP_VIP_sig_down, by="Metabolite")
 
-
-# Up regulated metabolites that overlap between B and P
-D52_CvsB_VIP_sig_up <- subset(D52_CvsB_VIP_1, D52_CvsB_VIP_1$Metabolite %in% D52_CvB_t.test.sig.up$Metabolite)
-D52_CvsB_VIP_sig_down <- subset(D52_CvsB_VIP_1, D52_CvsB_VIP_1$Metabolite %in% D52_CvB_t.test.sig.down$Metabolite)
-
-D52_CvsP_VIP_sig_up <- subset(D52_CvsP_VIP_1, D52_CvsP_VIP_1$Metabolite %in% D52_CvsP_t.test.sig.up$Metabolite)
-D52_CvsP_VIP_sig_down <- subset(D52_CvsP_VIP_1, D52_CvsP_VIP_1$Metabolite %in% D52_CvsP_t.test.sig.down$Metabolite)
 
 # Plotting
 
-D52_CvsB_VIP_UP <- D52_CvsB_VIP_sig_up %>%
+D52_uniqueB_BvsP_up_plot <- D52_uniqueB_BvsP_up_VIP %>%
   arrange(VIP) %>%
   ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
   geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
-  geom_point() +
+  geom_point(size = 7, color = "#8B0046") +
   xlim(1.2, 2) +
-  ylab("Accumulated") +
-  xlab("") +
-  ggtitle("Bleached") +
-  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
-                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) 
-
-D52_CvsB_VIP_DOWN <- D52_CvsB_VIP_sig_down %>%
-  arrange(VIP) %>%
-  ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
-  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
-  geom_point() +
-  xlim(1.2, 2) +
-  ylab("Depleted") +
+  ylab("") +
   xlab("VIP Score") +
-#  ggtitle("Bleached: Depleted") +
-  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
-                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) 
+#  ggtitle("Bleached Unique") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=17, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17))
 
-D52_CvsP_VIP_UP <- D52_CvsP_VIP_sig_up %>%
+D52_uniqueP_BvsP_up_plot <- D52_uniqueP_BvsP_up_VIP %>%
   arrange(VIP) %>%
   ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
   geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
-  geom_point() +
+  geom_point(size = 7, color = "#468B00") +
   xlim(1.2, 2) +
   ylab("") +
   xlab("") +
-  ggtitle("Partial Mortality") +
-  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
-                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+#  ggtitle("Partial Mortality Unique") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=17, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17))
 
-D52_CvsP_VIP_DOWN <- D52_CvsP_VIP_sig_down %>%
+D52_uniqueP_BvsP_down_plot <- D52_uniqueP_BvsP_down_VIP %>%
   arrange(VIP) %>%
   ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum))) +
   geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
-  geom_point() +
+  geom_point(size = 7, color = "#468B00") +
   xlim(1.2, 2) +
   ylab("") +
   xlab("VIP Score") +
 #  ggtitle("Partial Mortality: Depleted") +
-  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), panel.grid.major = element_blank(), #Makes background theme white
-                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=17, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17))
 
-D52_All_VIP_plot <- plot_grid(D52_CvsB_VIP_UP, D52_CvsP_VIP_UP, D52_CvsB_VIP_DOWN, D52_CvsP_VIP_DOWN, 
-                              align = "v", 
-                              ncol = 2, 
-                              rel_heights = c(0.95, 0.35), 
-                              labels = c("A", "B", "C", "D"))
+D52_overlap_BvsP_up_plot <- D52_overlap_BvsP_up_VIP_comb %>%
+  arrange(VIP) %>%
+  ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum), fill = Group)) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point(size = 7, aes(color = Group))+
+  scale_colour_manual(values=c("#8B0046", "#468B00")) +
+  scale_fill_manual(values=c("#8B0046", "#468B00")) + 
+  xlim(1.2, 2) +
+  ylab("") +
+  xlab("") +
+#  ggtitle("Bleached Overlap") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=17, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17),
+                     legend.position = "none")
+
+D52_overlap_BvsP_down_plot <- D52_overlap_BvsP_down_VIP_comb %>%
+  arrange(VIP) %>%
+  ggplot( aes(x = VIP, y = reorder(Metabolite,VIP,sum), fill = Group)) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point(size = 7, aes(color = Group))+
+  scale_colour_manual(values=c("#8B0046", "#468B00")) +
+  scale_fill_manual(values=c("#8B0046", "#468B00")) + 
+  xlim(1.2, 2) +
+  ylab("") +
+  xlab("VIP Score") +
+#  ggtitle("Bleached Overlap") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=17, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17), 
+                     legend.text = element_text(size = 20),
+                     legend.title = element_text(size = 22)) 
+
+
+D52_All_VIP_plot <- D52_uniqueB_BvsP_up_plot +
+                     D52_overlap_BvsP_up_plot +
+                     D52_uniqueP_BvsP_up_plot +
+                     guide_area() +
+                     D52_overlap_BvsP_down_plot +
+                     D52_uniqueP_BvsP_down_plot + 
+                     plot_layout(ncol=3, heights=c(0.4,0.1), guides = "collect") 
+ 
+
 
 D52_All_VIP_plot
-#ggsave(filename="../output/Metabolomics/Day52_VIP.pdf", plot=D52_All_VIP_plot, dpi=300, width=7, height=9, units="in")
+ggsave(filename="../output/Metabolomics/Day52_VIP.pdf", plot=D52_All_VIP_plot, dpi=300, width=20, height=9, units="in")
+```
+
+### Pathway Analysis
+
+#### Day 52 Control vs Bleached
+``` {r ORAPathD52CvBup, echo=TRUE, warning=FALSE, message=FALSE}
+
+# D52 Control vs Bleached UP Overrepresentation Analysis and  via Metaboanalyst 4.0
+
+D52_CvsB_VIP_sig_up
+D52_CvsB_VIP_sig_up$Metabolite[D52_CvsB_VIP_sig_up$Metabolite == "NADPH (SIM)"] <- "NADPH"
+
+mSet<-InitDataObjects("conc", "pathora", FALSE)
+cmpd.vec<-c(D52_CvsB_VIP_sig_up$Metabolite)
+mSet<-Setup.MapData(mSet, cmpd.vec)
+mSet<-CrossReferencing(mSet, "name")
+mSet<-CreateMappingResultTable(mSet)
+mSet<-PerformDetailMatch(mSet, "NG-dimethyl-L-arginine")
+mSet<-GetCandidateList(mSet)
+mSet<-SetCandidate(mSet, "NG-dimethyl-L-arginine", "Asymmetric dimethylarginine") #Replacing metabolite
+mSet<-CreateMappingResultTable(mSet)
+mSet<-SetMetabolomeFilter(mSet, F)
+
+D52_CvsB_up_dataset <- mSet$dataSet #extracting input dataframe
+D52_CvsB_up_KEGG <- as.data.frame(D52_CvsB_up_dataset$map.table) #extracting KEGG terms
+
+write.csv(D52_CvsB_up_KEGG, "../output/Metabolomics/MetaboAnalyst_Output/D52_Comparisons/D52_CvsB_up_KEGG.csv")
+
+## PATHWAY ENRICHMENT
+
+#Model org: C elegans
+#ORA analysis: Fisher's exact test
+#Pathway topology analysis: relative betweenness centrality (rbc)
+
+mSet_Path<-SetKEGG.PathLib(mSet, "cel", "current") #comparing again C.elegans, review parameters
+mSet_Path<-SetMetabolomeFilter(mSet_Path, F) 
+mSet_Path<-CalculateOraScore(mSet_Path, "rbc", "hyperg") #review parameters
+
+D52_CvsB_up_analset_KEGG <- mSet_Path$api
+D52_CvsB_up_PATHWAY <- as.data.frame(D52_CvsB_up_analset_KEGG$ora.results) #extracting KEGG terms
+
+write.csv(D52_CvsB_up_PATHWAY, "../output/Metabolomics/MetaboAnalyst_Output/D52_Comparisons/D52_CvsB_up_PATHWAY.csv")
+
+D52_CvsB_up_PATHWAY
+
+```
+
+
+#### Day 52 Control vs Partial Mortality
+
+``` {r ORAPathD52CvPup, echo=TRUE, warning=FALSE, message=FALSE}
+# D52 Control vs Partial Mortality UP Overrepresentation Analysis and  via Metaboanalyst 4.0
+
+D52_CvsP_VIP_sig_up
+D52_CvsP_VIP_sig_up$Metabolite[D52_CvsP_VIP_sig_up$Metabolite == "NADPH (SIM)"] <- "NADPH"
+
+mSet<-InitDataObjects("conc", "pathora", FALSE)
+cmpd.vec<-c(D52_CvsP_VIP_sig_up$Metabolite)
+mSet<-Setup.MapData(mSet, cmpd.vec)
+mSet<-CrossReferencing(mSet, "name")
+mSet<-CreateMappingResultTable(mSet)
+# mSet<-PerformDetailMatch(mSet, "Acetyl Proline")
+# mSet<-GetCandidateList(mSet)
+mSet<-PerformDetailMatch(mSet, "NG-dimethyl-L-arginine")
+mSet<-GetCandidateList(mSet)
+mSet<-SetCandidate(mSet, "NG-dimethyl-L-arginine", "Asymmetric dimethylarginine")
+mSet<-PerformDetailMatch(mSet, "Pyrroline-5-carboxylic acid")
+mSet<-GetCandidateList(mSet)
+#mSet<-SetCandidate(mSet, "Pyrroline-5-carboxylic acid", "1-Pyrroline-5-carboxylic acid") #this isnt working for some reson
+mSet<-CreateMappingResultTable(mSet)
+mSet<-SetMetabolomeFilter(mSet, F)
+
+D52_CvsP_up_dataset <- mSet$dataSet #extracting input dataframe
+D52_CvsP_up_KEGG <- as.data.frame(D52_CvsP_up_dataset$map.table) #extracting KEGG terms
+
+write.csv(D52_CvsP_up_KEGG, "../output/Metabolomics/MetaboAnalyst_Output/D52_Comparisons/D52_CvsP_up_KEGG.csv")
+
+## PATHWAY ENRICHMENT
+
+#Model org: C elegans
+#ORA analysis: Fisher's exact test
+#Pathway topology analysis: relative betweenness centrality (rbc)
+
+mSet_Path<-SetKEGG.PathLib(mSet, "cel", "current") #comparing again C.elegans, review parameters
+mSet_Path<-SetMetabolomeFilter(mSet_Path, F) 
+mSet_Path<-CalculateOraScore(mSet_Path, "rbc", "hyperg") #review parameters
+
+D52_CvsP_up_analset_KEGG <- mSet_Path$api
+D52_CvsP_up_PATHWAY <- as.data.frame(D52_CvsP_up_analset_KEGG$ora.results) #extracting KEGG terms
+
+write.csv(D52_CvsP_up_PATHWAY, "../output/Metabolomics/MetaboAnalyst_Output/D52_Comparisons/D52_CvsP_up_PATHWAY.csv")
+
+D52_CvsP_up_PATHWAY 
 
 ```
