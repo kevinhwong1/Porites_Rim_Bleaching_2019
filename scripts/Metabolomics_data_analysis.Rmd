@@ -49,7 +49,6 @@ library(RVAideMemoire)
 library(arsenal)
 library(patchwork)
 library(tidyr)
-library(MetaboAnalystR)
 
 #Import data
 
@@ -867,16 +866,20 @@ D52_All_VIP_plot <- D52_uniqueB_BvsP_up_plot +
                      D52_uniqueP_BvsP_down_plot + 
                      plot_layout(ncol=3, heights=c(0.4,0.1), guides = "collect") 
  
-
-
-D52_All_VIP_plot
-ggsave(filename="../output/Metabolomics/Day52_VIP.pdf", plot=D52_All_VIP_plot, dpi=300, width=20, height=9, units="in")
+ggsave(filename="../output/Metabolomics/Day52_VIP.png", plot=D52_All_VIP_plot, dpi=300, width=20, height=9, units="in")
 ```
+
+```{r, echo=FALSE, out.width="100%", fig.cap="Day_52_VIP"}
+knitr::include_graphics("../output/Metabolomics/Day52_VIP.png")
+```
+
 
 ### Pathway Analysis
 
 #### Day 52 Control vs Bleached
-``` {r ORAPathD52CvBup, echo=TRUE, warning=FALSE, message=FALSE}
+``` {r ORAPathD52CvBup, echo=TRUE, warning=FALSE, message=FALSE, results=FALSE}
+
+library(MetaboAnalystR)
 
 # D52 Control vs Bleached UP Overrepresentation Analysis and  via Metaboanalyst 4.0
 
@@ -914,14 +917,44 @@ D52_CvsB_up_PATHWAY <- as.data.frame(D52_CvsB_up_analset_KEGG$ora.results) #extr
 
 write.csv(D52_CvsB_up_PATHWAY, "../output/Metabolomics/MetaboAnalyst_Output/D52_Comparisons/D52_CvsB_up_PATHWAY.csv")
 
-D52_CvsB_up_PATHWAY
+D52_CvsB_up_PATHWAY 
 
+# PLOTTING
+
+D52_CvsB_up_PATHWAY <- tibble::rownames_to_column(D52_CvsB_up_PATHWAY, "Pathway")
+names(D52_CvsB_up_PATHWAY)[5] <- "pvalue"
+names(D52_CvsB_up_PATHWAY)[6] <- "neglogp"
+
+logsig<- -log(0.05)
+
+pointstolabel <- D52_CvsB_up_PATHWAY %>%
+  filter(pvalue < 0.05)
+
+D52_CvsB_up_PATHWAY_plot <- D52_CvsB_up_PATHWAY %>%
+    mutate(color = ifelse(neglogp>logsig, "red", "grey")) %>%
+    ggplot(aes(x=Impact, y=neglogp, size=Impact, color = "black", fill = color)) +
+    geom_point(shape=21) +
+    scale_color_identity() +
+    scale_fill_identity() +
+    geom_hline(yintercept=logsig, linetype="dashed", color = "red", size=2) +
+#    geom_text(data=subset(D52_CvsP_up_PATHWAY, neglogp>logsig), aes(Impact,neglogp,label=Pathway)) +
+    ylab("-log(p)") +
+    xlab("Pathway Impact") +
+    theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=17, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17), 
+                     legend.position="none") 
+
+D52_CvsB_up_PATHWAY_plot
 ```
 
 
 #### Day 52 Control vs Partial Mortality
 
-``` {r ORAPathD52CvPup, echo=TRUE, warning=FALSE, message=FALSE}
+``` {r ORAPathD52CvPup, echo=TRUE, warning=FALSE, message=FALSE, results=FALSE}
 # D52 Control vs Partial Mortality UP Overrepresentation Analysis and  via Metaboanalyst 4.0
 
 D52_CvsP_VIP_sig_up
@@ -965,4 +998,34 @@ write.csv(D52_CvsP_up_PATHWAY, "../output/Metabolomics/MetaboAnalyst_Output/D52_
 
 D52_CvsP_up_PATHWAY 
 
+# Plotting
+
+D52_CvsP_up_PATHWAY <- tibble::rownames_to_column(D52_CvsP_up_PATHWAY, "Pathway")
+names(D52_CvsP_up_PATHWAY)[5] <- "pvalue"
+names(D52_CvsP_up_PATHWAY)[6] <- "neglogp"
+
+logsig<- -log(0.05)
+
+pointstolabel <- D52_CvsP_up_PATHWAY %>%
+  filter(pvalue < 0.05)
+
+D52_CvsP_up_PATHWAY_plot <- D52_CvsP_up_PATHWAY %>%
+    mutate(color = ifelse(neglogp>logsig, "red", "grey")) %>%
+    ggplot(aes(x=Impact, y=neglogp, size=Impact, color = "black", fill = color)) +
+    geom_point(shape=21) +
+    scale_color_identity() +
+    scale_fill_identity() +
+    geom_hline(yintercept=logsig, linetype="dashed", color = "red", size=2) +
+#    geom_text(data=subset(D52_CvsP_up_PATHWAY, neglogp>logsig), aes(Impact,neglogp,label=Pathway)) +
+    ylab("-log(p)") +
+    xlab("Pathway Impact") +
+    theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=17, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17), 
+                     legend.position="none") 
+
+D52_CvsP_up_PATHWAY_plot
 ```
