@@ -63,6 +63,7 @@ library("plotrix")
 library("lubridate")
 library(lsmeans)
 library(patchwork)
+library(ggrepel)
 
 # Load metadata
 vial.meta <- read.csv("../data/Physiology/Vial_Metadata.csv")
@@ -552,7 +553,7 @@ master$Fragment.ID <- as.factor(master$Fragment.ID)
 # Remove surface area and cells 
 
 master <- master %>%
-  dplyr::select(-c(Surface_Area_cm2, Cells, ChlC2.ugcell, ChlC2.ugcm2))
+  dplyr::select(-c(Surface_Area_cm2, Cells))
 
 master
 ```
@@ -564,22 +565,25 @@ master
 ###############################
 
 TP_Coral_Box <- ggplot(master, aes(x=Day, y=Coral_Protein_mgcm2, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Total Protein " (mg~cm^{-2}))) + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
                      panel.grid.minor = element_blank(), axis.line = element_blank()) +
-  theme(axis.text = element_text(size = 15, color = "black"),
-        axis.title = element_text(size = 18, color = "black")) + ggtitle("Coral Total Protein")
-TP_Coral_Box
+  theme(axis.text = element_text(size = 18, color = "black"),
+        axis.title = element_text(size = 20, color = "black")) + ggtitle("Coral Total Protein")
 
-TP_Coral_lmer <- lmer(Coral_Protein_mgcm2~Group*Day+(1|Fragment.ID), data = master)
+TP_Coral_Box
+ggsave(filename="../output/Physiology/TP_Coral_Box.png", plot=TP_Coral_Box, dpi=300, width=12, height=7, units="in")
+ 
+
+ TP_Coral_lmer <- lmer(Coral_Protein_mgcm2~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(TP_Coral_lmer))
 # qqline(resid(TP_Coral_lmer))
 # 
@@ -587,25 +591,28 @@ TP_Coral_lmer <- lmer(Coral_Protein_mgcm2~Group*Day+(1|Fragment.ID), data = mast
 # boxplot(resid(TP_Coral_lmer)~master$Day)
 anova(TP_Coral_lmer, type="II")
 
-#capture.output(anova(TP_Coral_lmer, type="II"), file = "../output/Statistics/TP_Coral_lmer.csv")
+capture.output(anova(TP_Coral_lmer, type="II"), file = "../output/Statistics/TP_Coral_lmer.csv")
 
 ###############################
 
 TP_Sym_SA_Box <- ggplot(master, aes(x=Day, y=Symbiont_Protein_mgcm2, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Total Protein " (mg~cm^{-2}))) + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
                      panel.grid.minor = element_blank(), axis.line = element_blank()) +
-  theme(axis.text = element_text(size = 15, color = "black"),
-        axis.title = element_text(size = 18, color = "black")) + ggtitle("Symbiont Total Protein (per cm2)")
+  theme(axis.text = element_text(size = 18, color = "black"),
+        axis.title = element_text(size = 20, color = "black")) + ggtitle("Symbiont Total Protein (per cm2)")
 TP_Sym_SA_Box
+
+ggsave(filename="../output/Physiology/TP_Sym_SA_Box.png", plot=TP_Sym_SA_Box, dpi=300, width=12, height=7, units="in")
+
 
 TP_Sym_lmer <- lmer(Symbiont_Protein_mgcm2~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(TP_Sym_lmer))
@@ -615,46 +622,49 @@ TP_Sym_lmer <- lmer(Symbiont_Protein_mgcm2~Group*Day+(1|Fragment.ID), data = mas
 # boxplot(resid(TP_Sym_lmer)~master$Day)
 anova(TP_Sym_lmer, type="II")
 
-#capture.output(anova(TP_Sym_lmer, type="II"), file = "../output/Statistics/TP_Sym_lmer.csv")
+capture.output(anova(TP_Sym_lmer, type="II"), file = "../output/Statistics/TP_Sym_lmer.csv")
 
 ###############################
 
 TP_Sym_Cell_Box <- ggplot(master, aes(x=Day, y=Protein.mgcell, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Total Protein " (mg~cell^{-1}))) + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
                      panel.grid.minor = element_blank(), axis.line = element_blank()) +
-  theme(axis.text = element_text(size = 15, color = "black"),
-        axis.title = element_text(size = 18, color = "black")) + ggtitle("Symbiont Total Protein (per cell)")
+  theme(axis.text = element_text(size = 18, color = "black"),
+        axis.title = element_text(size = 20, color = "black")) + ggtitle("Symbiont Total Protein (per cell)")
 TP_Sym_Cell_Box
 
-TP_Sym_lmer <- lmer(Symbiont_Protein_mgcm2~Group*Day+(1|Fragment.ID), data = master)
-# qqnorm(resid(TP_Sym_lmer))
-# qqline(resid(TP_Sym_lmer))
+ggsave(filename="../output/Physiology/TP_Sym_Cell_Box.png", plot=TP_Sym_Cell_Box, dpi=300, width=12, height=7, units="in")
+
+
+TP_Sym_cell_lmer <- lmer(Protein.mgcell~Group*Day+(1|Fragment.ID), data = master)
+# qqnorm(resid(TP_Sym_cell_lmer))
+# qqline(resid(TP_Sym_cell_lmer))
 # 
-# boxplot(resid(TP_Sym_lmer)~master$Group)
-# boxplot(resid(TP_Sym_lmer)~master$Day)
-anova(TP_Sym_lmer, type="II")
+# boxplot(resid(TP_Sym_cell_lmer)~master$Group)
+# boxplot(resid(TP_Sym_cell_lmer)~master$Day)
+anova(TP_Sym_cell_lmer, type="II")
 
-#capture.output(anova(TP_Sym_lmer, type="II"), file = "../output/Statistics/TP_Sym_lmer.csv")
+capture.output(anova(TP_Sym_cell_lmer, type="II"), file = "../output/Statistics/TP_Sym_cell_lmer.csv")
 
-###############################
+############################### 
 
 TP_CS_Box <- ggplot(master, aes(x=Day, y=HostSymRatioProtein, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab("Coral to Symbiont Ratio (Total Protein)") + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -662,6 +672,9 @@ TP_CS_Box <- ggplot(master, aes(x=Day, y=HostSymRatioProtein, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Host to Symbiont Ratio of Total Protein")
 TP_CS_Box
+
+ggsave(filename="../output/Physiology/TP_CS_Box.png", plot=TP_CS_Box, dpi=300, width=12, height=7, units="in")
+
 
 TP_CS_lmer <- lmer(HostSymRatioProtein~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(TP_CS_lmer))
@@ -671,18 +684,18 @@ TP_CS_lmer <- lmer(HostSymRatioProtein~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(TP_CS_lmer)~master$Day)
 anova(TP_CS_lmer, type="II")
 
-#capture.output(anova(TP_CS_lmer, type="II"), file = "../output/Statistics/TP_CS_lmer.csv")
+capture.output(anova(TP_CS_lmer, type="II"), file = "../output/Statistics/TP_CS_lmer.csv")
 
 ###############################
 
 Sym_Box <- ggplot(master, aes(x=Day, y=Cells.cm2.x6, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Cell Density " (10^{6} ~ cm^{-2})))+ #label y axis + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -690,6 +703,9 @@ Sym_Box <- ggplot(master, aes(x=Day, y=Cells.cm2.x6, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black"))+ ggtitle("Endosymbiont Cell Density (x10^6)")
 Sym_Box
+
+ggsave(filename="../output/Physiology/Sym_Box.png", plot=Sym_Box, dpi=300, width=12, height=7, units="in")
+
 
 Sym_lmer <- lmer(Cells.cm2.x6~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(Sym_lmer))
@@ -699,18 +715,18 @@ Sym_lmer <- lmer(Cells.cm2.x6~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(Sym_lmer)~master$Day)
 anova(Sym_lmer, type="II")
 
-#capture.output(anova(Sym_lmer, type="II"), file = "../output/Statistics/Sym_lmer.csv")
+capture.output(anova(Sym_lmer, type="II"), file = "../output/Statistics/Sym_lmer.csv")
 
 #################################
 
 Chla_SA_Box <- ggplot(master, aes(x=Day, y=ChlA.ugcm2, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Chlorophyll a " (ug ~ cm^{-2})))+ #label y axis + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -718,6 +734,9 @@ Chla_SA_Box <- ggplot(master, aes(x=Day, y=ChlA.ugcm2, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Chlorophyll a (per cm2)")
 Chla_SA_Box
+
+ggsave(filename="../output/Physiology/Chla_SA_Box.png", plot=Chla_SA_Box, dpi=300, width=12, height=7, units="in")
+
 
 Chla_SA_lmer <- lmer(ChlA.ugcm2~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(Chla_SA_lmer))
@@ -727,18 +746,18 @@ Chla_SA_lmer <- lmer(ChlA.ugcm2~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(Chla_SA_lmer)~master$Day)
 anova(Chla_SA_lmer, type="II")
 
-#capture.output(anova(Chla_SA_lmer, type="II"), file = "../output/Statistics/Chla_SA_lmer.csv")
+capture.output(anova(Chla_SA_lmer, type="II"), file = "../output/Statistics/Chla_SA_lmer.csv")
 
 #################################
 
 ChlC2_SA_Box <- ggplot(master, aes(x=Day, y=ChlC2.ugcm2, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Chlorophyll c2 " (ug ~ cm^{-2})))+ #label y axis + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -746,6 +765,8 @@ ChlC2_SA_Box <- ggplot(master, aes(x=Day, y=ChlC2.ugcm2, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Chlorophyll c2 (per cm2)")
 ChlC2_SA_Box
+
+ggsave(filename="../output/Physiology/ChlC2_SA_Box.png", plot=ChlC2_SA_Box, dpi=300, width=12, height=7, units="in")
 
 ChlC2_SA_lmer <- lmer(ChlC2.ugcm2~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(ChlC2_SA_lmer))
@@ -755,18 +776,18 @@ ChlC2_SA_lmer <- lmer(ChlC2.ugcm2~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(ChlC2_SA_lmer)~master$Day)
 anova(ChlC2_SA_lmer, type="II")
 
-#capture.output(anova(ChlC2_SA_lmer, type="II"), file = "../output/Statistics/ChlC2_SA_lmer.csv")
+capture.output(anova(ChlC2_SA_lmer, type="II"), file = "../output/Statistics/ChlC2_SA_lmer.csv")
 
 #################################
 
 Chla_cell_Box <- ggplot(master, aes(x=Day, y=ChlA.ugcell, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Chlorophyll a " (ug ~ cell^{-1})))+ #label y axis + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -774,6 +795,9 @@ Chla_cell_Box <- ggplot(master, aes(x=Day, y=ChlA.ugcell, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Chlorophyll a (per cell)")
 Chla_cell_Box
+
+ggsave(filename="../output/Physiology/Chla_cell_Box.png", plot=Chla_cell_Box, dpi=300, width=12, height=7, units="in")
+
 
 Chla_cell_lmer <- lmer(ChlA.ugcell~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(Chla_cell_lmer))
@@ -783,18 +807,18 @@ Chla_cell_lmer <- lmer(ChlA.ugcell~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(Chla_cell_lmer)~master$Day)
 anova(Chla_cell_lmer, type="II")
 
-#capture.output(anova(Chla_cell_lmer, type="II"), file = "../output/Statistics/Chla_cell_lmer.csv")
+capture.output(anova(Chla_cell_lmer, type="II"), file = "../output/Statistics/Chla_cell_lmer.csv")
 
 #################################
 
 ChlC2_cell_Box <- ggplot(master, aes(x=Day, y=ChlC2.ugcell, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) +  
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Chlorophyll c2 " (ug ~ cell^{-1})))+ #label y axis + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -802,6 +826,9 @@ ChlC2_cell_Box <- ggplot(master, aes(x=Day, y=ChlC2.ugcell, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Chlorophyll C2 (per cell)")
 ChlC2_cell_Box
+
+ggsave(filename="../output/Physiology/ChlC2_cell_Box.png", plot=ChlC2_cell_Box, dpi=300, width=12, height=7, units="in")
+
 
 ChlC2_cell_lmer <- lmer(ChlC2.ugcell~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(ChlC2_cell_lmer))
@@ -811,18 +838,18 @@ ChlC2_cell_lmer <- lmer(ChlC2.ugcell~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(ChlC2_cell_lmer)~master$Day)
 anova(ChlC2_cell_lmer, type="II")
 
-#capture.output(anova(ChlC2_cell_lmer, type="II"), file = "../output/Statistics/ChlC2_cell_lmer.csv")
+capture.output(anova(ChlC2_cell_lmer, type="II"), file = "../output/Statistics/ChlC2_cell_lmer.csv")
 
 #################################
 
 Carb_Coral_Box <- ggplot(master, aes(x=Day, y=Coral_Carb_mgcm2, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Total Carbohydrate " (mg~cm^{-2}))) + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -830,6 +857,9 @@ Carb_Coral_Box <- ggplot(master, aes(x=Day, y=Coral_Carb_mgcm2, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Coral Total Carbohydrate (per cm2)")
 Carb_Coral_Box
+
+ggsave(filename="../output/Physiology/Carb_Coral_Box.png", plot=Carb_Coral_Box, dpi=300, width=12, height=7, units="in")
+
 
 Carb_Coral_lmer <- lmer(Coral_Carb_mgcm2~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(Carb_Coral_lmer))
@@ -839,18 +869,18 @@ Carb_Coral_lmer <- lmer(Coral_Carb_mgcm2~Group*Day+(1|Fragment.ID), data = maste
 # boxplot(resid(Carb_Coral_lmer)~master$Day)
 anova(Carb_Coral_lmer, type="II")
 
-#capture.output(anova(Carb_Coral_lmer, type="II"), file = "../output/Statistics/Carb_Coral_lmer.csv")
+capture.output(anova(Carb_Coral_lmer, type="II"), file = "../output/Statistics/Carb_Coral_lmer.csv")
 
 #################################
 
 Carb_Sym_SA_Box <- ggplot(master, aes(x=Day, y=Symbiont_Carb_mgcm2, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Total Carbohydrate " (mg~cm^{-2}))) + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -858,6 +888,9 @@ Carb_Sym_SA_Box <- ggplot(master, aes(x=Day, y=Symbiont_Carb_mgcm2, fill = Group
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black"))  + ggtitle("Symbiont Total Carbohydrate (per cm2)")
 Carb_Sym_SA_Box
+
+ggsave(filename="../output/Physiology/Carb_Sym_SA_Box.png", plot=Carb_Sym_SA_Box, dpi=300, width=12, height=7, units="in")
+
 
 Carb_Sym_SA_lmer <- lmer(Symbiont_Carb_mgcm2~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(Carb_Sym_SA_lmer))
@@ -867,25 +900,28 @@ Carb_Sym_SA_lmer <- lmer(Symbiont_Carb_mgcm2~Group*Day+(1|Fragment.ID), data = m
 # boxplot(resid(Carb_Sym_SA_lmer)~master$Day)
 anova(Carb_Sym_SA_lmer, type="II")
 
-#capture.output(anova(Carb_Sym_SA_lmer, type="II"), file = "../output/Statistics/Carb_Sym_SA_lmer.csv")
+capture.output(anova(Carb_Sym_SA_lmer, type="II"), file = "../output/Statistics/Carb_Sym_SA_lmer.csv")
 
 #################################
 
 Carb_Sym_Cell_Box <- ggplot(master, aes(x=Day, y=Carb.mgcell, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
-  xlab("Timepoint") +  ylab(expression("Total Carbohydrate " (mg~cm^{-2}))) + #Axis titles
+  xlab("Timepoint") +  ylab(expression("Total Carbohydrate " (mg~cell^{-1}))) + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
                      panel.grid.minor = element_blank(), axis.line = element_blank()) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black"))  + ggtitle("Symbiont Total Carbohydrate (per cell)")
 Carb_Sym_Cell_Box
+
+ggsave(filename="../output/Physiology/Carb_Sym_Cell_Box.png", plot=Carb_Sym_Cell_Box, dpi=300, width=12, height=7, units="in")
+
 
 Carb_Sym_Cell_lmer <- lmer(Carb.mgcell~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(Carb_Sym_Cell_lmer))
@@ -895,18 +931,18 @@ Carb_Sym_Cell_lmer <- lmer(Carb.mgcell~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(Carb_Sym_Cell_lmer)~master$Day)
 anova(Carb_Sym_Cell_lmer, type="II")
 
-#capture.output(anova(Carb_Sym_Cell_lmer, type="II"), file = "../output/Statistics/Carb_Sym_Cell_lmer.csv")
+capture.output(anova(Carb_Sym_Cell_lmer, type="II"), file = "../output/Statistics/Carb_Sym_Cell_lmer.csv")
 
 #################################
 
 Carb_CS_Box <- ggplot(master, aes(x=Day, y=HostSymRatioCarb, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5)) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) +  
   scale_x_discrete(labels=c("0" = "Day 0", "37" = "Day 37", "52" = "Day 52")) +
   xlab("Timepoint") +  ylab("Coral to Symbiont Ratio (Total Carbohydrate)")  + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -914,6 +950,8 @@ Carb_CS_Box <- ggplot(master, aes(x=Day, y=HostSymRatioCarb, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Host to Symbiont Total Carbohydrate")
 Carb_CS_Box
+
+ggsave(filename="../output/Physiology/Carb_CS_Box.png", plot=Carb_CS_Box, dpi=300, width=12, height=7, units="in")
 
 Carb_CS_lmer <- lmer(HostSymRatioCarb~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(Carb_CS_lmer))
@@ -923,18 +961,18 @@ Carb_CS_lmer <- lmer(HostSymRatioCarb~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(Carb_CS_lmer)~master$Day)
 anova(Carb_CS_lmer, type="II")
 
-#capture.output(anova(Carb_CS_lmer, type="II"), file = "../output/Statistics/Carb_CS_lmer.csv")
+capture.output(anova(Carb_CS_lmer, type="II"), file = "../output/Statistics/Carb_CS_lmer.csv")
 
 #################################
 
 PG_Box <- ggplot(master, aes(x=Day, y=Pgross_umol.cm2.hr, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
 #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5), outlier.shape= NA) +
 #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("T1" = "Day 0", "T2" = "Day 37", "T3" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Gross Photosynthetic Rate " (mu*mol ~ cm^{-2} ~ h^{-1}))) + #label y axis + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -942,6 +980,9 @@ PG_Box <- ggplot(master, aes(x=Day, y=Pgross_umol.cm2.hr, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Gross Photosynthetic Rate")
 PG_Box
+
+ggsave(filename="../output/Physiology/PG_Box.png", plot=PG_Box, dpi=300, width=12, height=7, units="in")
+
 
 PG_lmer <- lmer(Pgross_umol.cm2.hr~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(PG_lmer))
@@ -951,18 +992,18 @@ PG_lmer <- lmer(Pgross_umol.cm2.hr~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(PG_lmer)~master$Day)
 anova(PG_lmer, type="II")
 
-#capture.output(anova(PG_lmer, type="II"), file = "../output/Statistics/PG_lmer.csv")
+capture.output(anova(PG_lmer, type="II"), file = "../output/Statistics/PG_lmer.csv")
 
 #################################
 
 Resp_Box <- ggplot(master, aes(x=Day, y=abs.Rdark_umol.cm2.hr, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5), outlier.shape= NA) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("T1" = "Day 0", "T2" = "Day 37", "T3" = "Day 52")) +
   xlab("Timepoint") +  ylab(expression("Respiration Rate " (mu*mol ~ cm^{-2} ~ h^{-1}))) + #label y axis + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -970,6 +1011,8 @@ Resp_Box <- ggplot(master, aes(x=Day, y=abs.Rdark_umol.cm2.hr, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Light-Enhanced Respiration Rate")
 Resp_Box
+
+ggsave(filename="../output/Physiology/Resp_Box.png", plot=Resp_Box, dpi=300, width=12, height=7, units="in")
 
 Resp_lmer <- lmer(abs.Rdark_umol.cm2.hr~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(Resp_lmer))
@@ -979,18 +1022,18 @@ Resp_lmer <- lmer(abs.Rdark_umol.cm2.hr~Group*Day+(1|Fragment.ID), data = master
 # boxplot(resid(Resp_lmer)~master$Day)
 anova(Resp_lmer, type="II")
 
-#capture.output(anova(Resp_lmer, type="II"), file = "../output/Statistics/Resp_lmer.csv")
+capture.output(anova(Resp_lmer, type="II"), file = "../output/Statistics/Resp_lmer.csv")
 
 #################################
 
 PR_Box <- ggplot(master, aes(x=Day, y=PR, fill = Group)) +
-  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5)) +
+  geom_boxplot(width=.5, outlier.shape= NA, position = position_dodge(width = 0.5), alpha = 0.7) +
   stat_summary(fun=mean, geom="line", aes(group=Group, color = Group), position = position_dodge(width = 0.5))  + 
   #  stat_summary(fun=mean, geom="point")
   geom_point(pch = 21, position=position_jitterdodge(dodge.width=0.5), outlier.shape= NA) +
   #  ylim(0,0.5) +
-  scale_fill_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) +
-  scale_color_manual(values=c("#E7B800", "#00AFBB", "#FC4E07")) + 
+  scale_fill_manual(values=c("#CC3300", "#46008B", "#468B00")) +
+  scale_color_manual(values=c("#CC3300", "#46008B", "#468B00")) + 
   scale_x_discrete(labels=c("T1" = "Day 0", "T2" = "Day 37", "T3" = "Day 52")) +
   xlab("Timepoint") +  ylab("P:R") + #label y axis + #Axis titles
   theme_bw() + theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
@@ -998,6 +1041,9 @@ PR_Box <- ggplot(master, aes(x=Day, y=PR, fill = Group)) +
   theme(axis.text = element_text(size = 15, color = "black"),
         axis.title = element_text(size = 18, color = "black")) + ggtitle("Photosyntheis to Respiration Ratio")
 PR_Box
+
+ggsave(filename="../output/Physiology/PR_Box.png", plot=PR_Box, dpi=300, width=12, height=7, units="in")
+
 
 PR_lmer <- lmer(PR~Group*Day+(1|Fragment.ID), data = master)
 # qqnorm(resid(PR_lmer))
@@ -1007,14 +1053,14 @@ PR_lmer <- lmer(PR~Group*Day+(1|Fragment.ID), data = master)
 # boxplot(resid(PR_lmer)~master$Day)
 anova(PR_lmer, type="II")
 
-#capture.output(anova(PR_lmer, type="II"), file = "../output/Statistics/PR_lmer.csv")
+capture.output(anova(PR_lmer, type="II"), file = "../output/Statistics/PR_lmer.csv")
 
 #################################
 
 ```
 
 
-## PCA
+## PCA ALL
 
 ```{r PCA, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -1148,8 +1194,166 @@ FinalFullPCA<-ggdraw(PCAfull) + #theme_half_open(12)) +
 
 ggsave(filename="../output/Physiology/FullPCA_phys.pdf", plot=FinalFullPCA, dpi=300, width=12, height=10, units="in")
 
+```
+## PCA Significant loadings
 
-FinalFullPCA2 <- 
+```{r PCAsig, echo=TRUE, warning=FALSE, message=FALSE}
+
+master.sig <- master %>%
+  dplyr::select(-c(HostSymRatioCarb, Symbiont_Carb_mgcm2, Symbiont_Protein_mgcm2, ChlA.ugcell, ChlC2.ugcell, Protein.mgcell, Pnet_umol.cm2.hr))
+
+master.sig_clean <- master.sig %>%
+  dplyr::rename(Gross_Photo = Pgross_umol.cm2.hr, 
+                LEDR = abs.Rdark_umol.cm2.hr,
+                Coral_Carb = Coral_Carb_mgcm2,
+                Coral_Protein = Coral_Protein_mgcm2,
+                HS_Protien = HostSymRatioProtein,
+                Cell_density = Cells.cm2.x6,
+                Chl_a = ChlA.ugcm2,
+                Chl_c2 = ChlC2.ugcm2,
+                Sym_carb_cell = Carb.mgcell)
+
+master.sig.pca <- master.sig_clean
+
+scaled_pca.sig <-prcomp(master.sig.pca[c(4:13)], scale=TRUE, center=TRUE)
+fviz_eig(scaled_pca.sig)
+
+coral_info<-master.sig.pca[c(2,3)]
+
+pca_data_sig<- scaled_pca.sig%>%
+  augment(coral_info)%>%
+  group_by(Day, Group)%>%
+  mutate(PC1.mean = mean(.fittedPC1),
+         PC2.mean = mean(.fittedPC2))
+
+pca.centroids_sig<- pca_data_sig%>% 
+  dplyr::select(Day, Group, PC1.mean, PC2.mean)%>%
+  dplyr::group_by(Day, Group)%>%
+  dplyr::summarise(PC1.mean = mean(PC1.mean),
+                   PC2.mean = mean(PC2.mean))
+
+#Examine PERMANOVA results.  
+
+# scale data
+vegan.sig <- scale(master.sig.pca[c(4:13)])
+
+# PerMANOVA 
+permanova.sig<-adonis(vegan.sig ~ Day*Group, data = master.sig.pca, method='eu')
+z_pca.sig<-permanova.sig$aov.tab
+z_pca.sig
+
+#Assemble plot with background points
+
+#1. make plot with dots
+
+#adding percentages on axis
+
+names(pca_data_sig)[4] <- "PCA1"
+names(pca_data_sig)[5] <- "PCA2"
+percentage <- round((scaled_pca.sig$sdev^2) / sum((scaled_pca.sig$sdev^2)) * 100, 2)
+percentage <- paste( colnames(pca_data_sig[4:15]), "(", paste(as.character(percentage), "%", ")", sep="") )
+
+#setting up data to add polygons
+pca_data_sig$Day.Group <- paste(pca_data_sig$Day, pca_data_sig$Group)
+find_hull <- function(pca_data_sig) pca_data_sig[chull(pca_data_sig$PCA1, pca_data_sig$PCA2), ]
+hulls <- ddply(pca_data_sig, "Day.Group", find_hull)
+
+PCA_sig<-ggplot(pca_data_sig, aes(PCA1, PCA2, color=Group)) + 
+  geom_point(size = 4, alpha=0.2, aes(shape = Day))+
+  scale_colour_manual(values=c("#46008B", "#8B0046", "#468B00")) +
+  scale_fill_manual(values=c("#46008B", "#8B0046", "#468B00")) + 
+  scale_shape_manual(values=c(15, 17, 19)) +
+  theme_classic()+
+  ylim(-5,5)+
+  xlim(-5,5)+
+  ylab(percentage[2])+
+  xlab(percentage[1])+
+  geom_text(x=4.0, y=-4.0, label=paste("p(Day)=", z_pca.sig$`Pr(>F)`[1]), size=6, color=ifelse(z_pca.sig$`Pr(>F)`[1] < 0.05, "black", "darkgray")) + 
+  geom_text(x=4.0, y=-4.5, label=paste("p(Group)=", z_pca.sig$`Pr(>F)`[2]), size=6, color=ifelse(z_pca.sig$`Pr(>F)`[2] < 0.05, "black", "darkgray")) + 
+  geom_text(x=4.0, y=-5.0, label=paste("p(Day x Group)=", z_pca.sig$`Pr(>F)`[3]), size=6, color=ifelse(z_pca.sig$`Pr(>F)`[3] < 0.05, "black", "darkgray")) + 
+  theme(legend.text = element_text(size=8), 
+        legend.position="none",
+        plot.background = element_blank(),
+        legend.title = element_text(size=10), 
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        axis.text = element_text(size=18), 
+        title = element_text(size=25, face="bold"), 
+        axis.title = element_text(size=18))
+
+#Add centroids  
+
+#2. add centroids 
+PCAcen_sig<-PCA_sig +  geom_polygon(data = hulls, alpha = 0.2, aes(color = Group, fill = Group, lty = Day)) +
+  geom_point(aes(x=PC1.mean, y=PC2.mean,color=Group, shape = Day), data=pca.centroids_sig, size=4, show.legend=FALSE) + 
+  scale_linetype_manual(values = c("solid", "dashed", "dotted")) +
+  scale_colour_manual(values=c("#46008B", "#8B0046", "#468B00"), breaks = c("Control","Bleached", "Mortality"), labels = c("Control", "Bleached", "Partial Mortality")) +
+  scale_fill_manual(values=c("#46008B", "#8B0046", "#468B00"), breaks = c("Control","Bleached", "Mortality"), labels = c("Control", "Bleached", "Partial Mortality")) + 
+  scale_shape_manual(values=c(15, 17, 19)) +
+  theme(legend.text = element_text(size=18), 
+        legend.position=c(0.90,0.85),
+        plot.background = element_blank(),
+        legend.title = element_text(size=20), 
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        axis.text = element_text(size=18), 
+        title = element_text(size=25, face="bold"), 
+        axis.title = element_text(size=18))
+
+#Add segments
+
+#3. add segments
+segpoints<-pca.centroids_sig%>%
+  gather(variable, value, -(Day:Group)) %>%
+  unite(temp, Day, variable) %>%
+  spread(temp, value) 
+  
+names(segpoints)[2] <- "Day0_PC1.mean"
+names(segpoints)[3] <- "Day0_PC2.mean"
+names(segpoints)[4] <- "Day37_PC1.mean"
+names(segpoints)[5] <- "Day37_PC2.mean"
+names(segpoints)[6] <- "Day52_PC1.mean"
+names(segpoints)[7] <- "Day52_PC2.mean"
+
+PCAfull_sig<-PCAcen_sig + 
+  geom_segment(aes(x = Day0_PC1.mean, y = Day0_PC2.mean, xend = Day37_PC1.mean, yend = Day37_PC2.mean, colour = Group), data = segpoints, size=2, show.legend=FALSE) +
+  geom_segment(aes(x = Day37_PC1.mean, y = Day37_PC2.mean, xend = Day52_PC1.mean, yend = Day52_PC2.mean, colour = Group), data = segpoints, size=2, arrow = arrow(length=unit(0.5,"cm")), show.legend=FALSE); PCAfull_sig
+
+ggsave(filename="../output/Physiology/Sig_PCA_phys.png", plot=PCAfull_sig, dpi=300, width=12, height=12, units="in")
+```
+
+```{r, echo=FALSE, out.width="100%", fig.cap="PCA sig"}
+knitr::include_graphics("../output/Physiology/Sig_PCA_phys.png")
+```
+
+```{r, biplotsig, echo=TRUE, warning=FALSE, message=FALSE}
+#Add bi plot with loadings  
+
+#1. make plot with dots
+biplotArrows_sig <- ggplot2::autoplot(scaled_pca.sig, 
+                                      data=master.sig.pca, 
+                                      loadings=TRUE, color = "group", 
+                                      loadings.label.colour="black", 
+                                      loadings.colour="black", 
+                                      loadings.label=TRUE, 
+                                      loadings.label.repel=TRUE, 
+                                      frame=FALSE, 
+                                      size=20, 
+                                      alpha=0.0) + 
+                                theme_classic() +
+                                theme(plot.background = element_blank(),
+                                      plot.margin = margin(1, 1, 1, 1, "cm"),
+                                      axis.text = element_text(size=18), 
+                                      title = element_text(size=25, face="bold"), 
+                                      axis.title = element_text(size=18))
+
+biplotArrows_sig
+ggsave(filename="../output/Physiology/Sig_biplot_phys.pdf", plot=biplotArrows_sig, dpi=300, width=8, height=8, units="in")
+
+
+
+#FinalFullPCA<-ggdraw(PCAfull) + #theme_half_open(12)) +
+#  draw_plot(biplotArrows, .05, .6, .4, .4); FinalFullPCA #x, y, w, h
+
+#ggsave(filename="../output/Physiology/FullPCA_phys.pdf", plot=FinalFullPCA, dpi=300, width=12, height=10, units="in")
 
 
 ```
