@@ -1194,6 +1194,10 @@ FinalFullPCA<-ggdraw(PCAfull) + #theme_half_open(12)) +
 
 ggsave(filename="../output/Physiology/FullPCA_phys.pdf", plot=FinalFullPCA, dpi=300, width=12, height=10, units="in")
 
+corr <- ggpairs(master.pca, title="correlogram with ggpairs()") 
+ggsave(filename="../output/Physiology/corr_phys.pdf", plot=corr, dpi=300, width=20, height=20, units="in")
+
+
 ```
 ## PCA Significant loadings
 

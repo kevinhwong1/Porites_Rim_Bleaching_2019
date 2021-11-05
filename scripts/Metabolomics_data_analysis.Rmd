@@ -57,6 +57,7 @@ library(MetaboAnalystR)
 sample.info <- read.csv("../data/Metabolomics/Porites-Kevin_SampleInfo.csv")
 peak.pos <- read.csv("../data/Metabolomics/Peaks_Pos.csv")
 peak.neg <- read.csv("../data/Metabolomics/Peaks_Neg.csv")
+peak.unknown <- read.csv("../data/Metabolomics/Peaks_Unknown.csv")
 
 #Removing unncessesary columns
 
@@ -65,6 +66,9 @@ peak.pos3 <- peak.pos2[ -c(2:9)] # if we need the blanks, change the 9 to 6
 
 peak.neg2 <- peak.neg[ -c(1:9)] 
 peak.neg3 <- peak.neg2[ -c(2:9)] # if we need the blanks, change the 9 to 6
+
+peak.unknown2 <- peak.unknown[ -c(1:9)] 
+peak.unknown3 <- peak.unknown2[ -c(2:9)] # if we need the blanks, change the 9 to 6
 
 #### Selecting polarity based on higher signal intensity ###
 
@@ -105,12 +109,16 @@ y.all.keep <- peak.neg3[!(peak.neg3$compound %in% x.diff.keep$ID),] #removing ro
 peak.pos4<- melt(x.all.keep, id= "compound") #melting dataset 
 peak.neg4<- melt(y.all.keep, id= "compound") #melting dataset 
 
+peak.unknown4 <- melt(peak.unknown3, id="compound")
+
 # adding polarity 
 peak.pos4$polarity <- "positive"
 peak.neg4$polarity <- "negative"
 
+peak.unknown4$polarity <- "unknown"
+
 # Binding positive and negative datasets together
-peak.all <- rbind(peak.pos4, peak.neg4)
+peak.all <- rbind(peak.pos4, peak.neg4, peak.unknown4)
 
 # Renaming column 
 names(peak.all)[2] <- "Sample.ID"
