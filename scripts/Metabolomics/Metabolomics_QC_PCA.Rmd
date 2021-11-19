@@ -1,7 +1,7 @@
 ---
 title: "Metabolomics_QC_PCA"
 author: "Kevin Wong"
-date: "11/08/2021"
+date: "18/11/2021"
 output: html_document
 ---
 
@@ -70,11 +70,46 @@ peak.neg3 <- peak.neg2[ -c(2:9)] # if we need the blanks, change the 9 to 6
 peak.unknown2 <- peak.unknown[ -c(1:9)] 
 peak.unknown3 <- peak.unknown2[ -c(2:9)] # if we need the blanks, change the 9 to 6
 
+#Removing standards
+
+grep("PosIS", peak.pos3$compound) #5 metabolites with PosIS, need to remove
+grep("NegIS", peak.neg3$compound) #9 metabolites with NegIS, need to remove
+
+grep("(HAc+)", peak.pos3$compound) #0 metabolites with HAc+, need to rename
+grep("(HAc+)", peak.neg3$compound) #3 metabolites with HAc+, need to rename
+
+grep("(SIM)", peak.pos3$compound) #0 metabolites with SIM, need to rename
+grep("(SIM)", peak.neg3$compound) #4 metabolites with SIM, need to rename
+
+
+peaks_selected<- droplevels(peak.pos3)
+peaks_selected<- droplevels(peak.neg3)
+
+length(peak.pos3$compound) #109 metabolites in data set before cleaning
+length(peak.neg3$compound) #130 metabolites in data set before cleaning
+
+peaks_pos3_clean<-peak.pos3[!grepl("PosIS", peak.pos3$compound),] #remove POS
+length(peaks_pos3_clean$compound) #104 metabolites in data set after cleaning POS_IS
+
+peaks_neg3_clean<-peak.neg3[!grepl("NegIS", peak.neg3$compound),] #remove NEG
+length(peaks_neg3_clean$compound) #121 metabolites in data set after cleaning NEG_IS
+
+peaks_neg3_clean<-peaks_neg3_clean%>%
+  mutate(compound = str_remove(compound, pattern=fixed('(+HAc)')))%>% #rename any with +HAc 
+  mutate(compound = as.factor(compound))
+length(peaks_neg3_clean$compound) #121 metabolites in data set
+
+peaks_neg3_clean<-peaks_neg3_clean%>%
+  filter(compound != "NAD+") %>% # Removing the NAD+ without the SIM 
+  mutate(compound = str_remove(compound, pattern=fixed('(SIM)')))%>% #rename any with SIM 
+  mutate(compound = as.factor(compound))
+length(peaks_neg3_clean$compound) #120 metabolites in data set
+
 #### Selecting polarity based on higher signal intensity ###
 
 #obtain row means 
-pos.mean <- data.frame(ID=peak.pos3[,1], Means=rowMeans(peak.pos3[,-1]))
-neg.mean <- data.frame(ID=peak.neg3[,1], Means=rowMeans(peak.neg3[,-1]))
+pos.mean <- data.frame(ID=peaks_pos3_clean[,1], Means=rowMeans(peaks_pos3_clean[,-1]))
+neg.mean <- data.frame(ID=peaks_neg3_clean[,1], Means=rowMeans(peaks_neg3_clean[,-1]))
 
 # Comparing polarity means of each metabolite, x = pos, y = neg 
 cmp <- comparedf(pos.mean, neg.mean, by = "ID",
@@ -101,9 +136,8 @@ x.diff.keep <- df.diffs %>%
 y.diff.keep <- df.diffs %>%
   filter(selected.pol == "y") #extracting y selection
 
-x.all.keep <- peak.pos3[!(peak.pos3$compound %in% y.diff.keep$ID),] #removing rows where the metabolite is higher in neg df
-y.all.keep <- peak.neg3[!(peak.neg3$compound %in% x.diff.keep$ID),] #removing rows where the metabolite is higher in pos df
-
+x.all.keep <- peaks_pos3_clean[!(peaks_pos3_clean$compound %in% y.diff.keep$ID),] #removing rows where the metabolite is higher in neg df
+y.all.keep <- peaks_neg3_clean[!(peaks_neg3_clean$compound %in% x.diff.keep$ID),] #removing rows where the metabolite is higher in pos df
 
 # Re-shaping dataset 
 peak.pos4<- melt(x.all.keep, id= "compound") #melting dataset 
@@ -151,7 +185,7 @@ peak.all4 <- peak.all3 %>% spread(compound, Norm.IonCount)
 #adding 1000 to all variable to account for 0 values and log normalization 
 #Log normalization (https://www.intechopen.com/books/metabolomics-fundamentals-and-applications/processing-and-visualization-of-metabolomics-data-using-r)
 
-peak.all5 <- log((peak.all4[5:313] + 1000), 2)
+peak.all5 <- log((peak.all4[5:299] + 1000), 2)
 
 norm.data.all <- cbind(peak.all4[1:4], peak.all5)
 
@@ -183,7 +217,7 @@ peak.all.known4 <- peak.all.known3 %>% spread(compound, Norm.IonCount)
 #adding 1000 to all variable to account for 0 values and log normalization 
 #Log normalization (https://www.intechopen.com/books/metabolomics-fundamentals-and-applications/processing-and-visualization-of-metabolomics-data-using-r)
 
-peak.all.known5 <- log((peak.all.known4[5:185] + 1000), 2)
+peak.all.known5 <- log((peak.all.known4[5:171] + 1000), 2)
 
 norm.data.known <- cbind(peak.all.known4[1:4], peak.all.known5)
 
@@ -205,7 +239,8 @@ Code inspired by:
 
 ``` {r PCA all, echo=TRUE, warning=FALSE, message=FALSE}
 
-scaled_pca_all <-prcomp(norm.data.all[c(5:313)], scale=TRUE, center=TRUE)
+
+scaled_pca_all <-prcomp(norm.data.all[c(5:ncol(norm.data.all))], scale=TRUE, center=TRUE)
 fviz_eig(scaled_pca_all)
 
 coral_info <- norm.data.all[c(3,4)]
@@ -225,7 +260,7 @@ pca.centroids_all<- pca_data_all%>%
 #Examine PERMANOVA results.  
 
 # scale data
-vegan_all <- scale(norm.data.all[c(5:313)])
+vegan_all <- scale(norm.data.all[c(5:ncol(norm.data.all))])
 
 # PerMANOVA 
 permanova_all <- adonis(vegan_all ~ Day*Group, data = norm.data.all, method='eu')
@@ -322,7 +357,7 @@ Code inspired by:
 
 ``` {r PCA known, echo=TRUE, warning=FALSE, message=FALSE}
 
-scaled_pca_known <-prcomp(norm.data.known[c(5:185)], scale=TRUE, center=TRUE)
+scaled_pca_known <-prcomp(norm.data.known[c(5:ncol(norm.data.known))], scale=TRUE, center=TRUE)
 fviz_eig(scaled_pca_known)
 
 coral_info <- norm.data.known[c(3,4)]
@@ -342,7 +377,7 @@ pca.centroids_known<- pca_data_known%>%
 #Examine PERMANOVA results.  
 
 # scale data
-vegan_known <- scale(norm.data.known[c(5:185)])
+vegan_known <- scale(norm.data.known[c(5:ncol(norm.data.known))])
 
 # PerMANOVA 
 permanova_known <- adonis(vegan_known ~ Day*Group, data = norm.data.known, method='eu')

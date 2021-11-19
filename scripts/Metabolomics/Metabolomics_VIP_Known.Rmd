@@ -1,7 +1,7 @@
 ---
 title: "Metabolomics_VIP_Extraction"
 author: "Kevin Wong"
-date: "08/11/2021"
+date: "18/11/2021"
 output: html_document
 ---
 
@@ -18,33 +18,35 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Data comparisons: 
 
-All metabolites:
-- Day 0: 
-    - Control vs Bleached
-    - Control vs Partial Mortality
-    - Bleached vs Partial Mortality
-- Day 37: 
-    - Control vs Bleached
-    - Control vs Partial Mortality
-    - Bleached vs Partial Mortality
-- Day 52: 
-    - Control vs Bleached
-    - Control vs Partial Mortality
-    - Bleached vs Partial Mortality
+#### All metabolites:
 
-Identified metabolites:
-- Day 0: 
-    - Control vs Bleached
-    - Control vs Partial Mortality
-    - Bleached vs Partial Mortality
-- Day 37: 
-    - Control vs Bleached
-    - Control vs Partial Mortality
-    - Bleached vs Partial Mortality
-- Day 52: 
-    - Control vs Bleached
-    - Control vs Partial Mortality
-    - Bleached vs Partial Mortality
+* Day 0: 
+    + Control vs Bleached
+    + Control vs Partial Mortality
+    + Bleached vs Partial Mortality
+* Day 37: 
+    + Control vs Bleached
+    + Control vs Partial Mortality
+    + Bleached vs Partial Mortality
+* Day 52: 
+    + Control vs Bleached
+    + Control vs Partial Mortality
+    + Bleached vs Partial Mortality
+
+#### Identified metabolites:
+
+* Day 0: 
+    + Control vs Bleached
+    + Control vs Partial Mortality
+    + Bleached vs Partial Mortality
+* Day 37: 
+    + Control vs Bleached
+    + Control vs Partial Mortality
+    + Bleached vs Partial Mortality
+* Day 52: 
+    + Control vs Bleached
+    + Control vs Partial Mortality
+    + Bleached vs Partial Mortality
 
 
 ``` {r dependencies, echo=TRUE, warning=FALSE, message=FALSE}
@@ -185,7 +187,7 @@ return(t.test.sig.final)
 
 ### Cleaning datasets and subsetting for analyses
 
-``` {r PLSDACvsB, echo=TRUE, warning=FALSE, message=FALSE}
+``` {r CleanSubset, echo=TRUE, warning=FALSE, message=FALSE}
 
 Norm_Data_Known_2 <- column_to_rownames(Norm_Data_Known, 'Sample.ID')
 
@@ -322,7 +324,7 @@ D52_BvsP_all_VIP_1 <- vip.plsda(D52_BvsP_all, D52_BvsP_all$Group, path, "D52_Bvs
 ```
 
 
-### T-test abd FDR correction of metabolites with VIPs >1
+### T-test and FDR correction of metabolites with VIPs >1
 
 ``` {r ttest, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -419,12 +421,14 @@ feat.stat.table <- rbind(D37_BvsC_all_VIP_table,
 feat.stat.table2 <- feat.stat.table %>%
   spread(key = Var2, value = Freq)
 
+feat.stat.table2
+
 write.csv(feat.stat.table2, "../../output/Metabolomics/VIP/feat.stat.table.csv")
 ```
 
 ### VIP plotting after t-test validation
 
-``` {r VIP-test, echo=TRUE, warning=FALSE, message=FALSE}
+``` {r VIPPlot, echo=TRUE, warning=FALSE, message=FALSE}
 
 # Attaching VIPs to t-test dataframes
 
@@ -434,6 +438,7 @@ D52_BvsC_all_VIP_sig2 <- merge(D52_BvsC_all_VIP_sig, D52_BvsC_all_VIP_1, by = "M
 D52_CvsP_all_VIP_sig2 <- merge(D52_CvsP_all_VIP_sig, D52_CvsP_all_VIP_1, by = "Metabolite")
 
 # Adding comparison column to keep track of data sets
+
 D37_BvsC_all_VIP_sig2$Comparison <- "Bleached"
 D37_CvsP_all_VIP_sig2$Comparison <- "Partial Mortality"
 D52_BvsC_all_VIP_sig2$Comparison <- "Bleached"
@@ -441,16 +446,16 @@ D52_CvsP_all_VIP_sig2$Comparison <- "Partial Mortality"
 
 #subsetting accumulated and depleted metabolites
 
-D37_BvsC_all_VIP_sig_accumulated <- D52_BvsC_all_VIP_sig2 %>%
+D37_BvsC_all_VIP_sig_accumulated <- D37_BvsC_all_VIP_sig2 %>%
   filter(Enrichment.dir != "Control")
 
-D37_BvsC_all_VIP_sig_depleted <- D52_BvsC_all_VIP_sig2 %>%
+D37_BvsC_all_VIP_sig_depleted <- D37_BvsC_all_VIP_sig2 %>%
   filter(Enrichment.dir == "Control")
 
-D37_CvsP_all_VIP_sig_accumulated <- D52_CvsP_all_VIP_sig2 %>%
+D37_CvsP_all_VIP_sig_accumulated <- D37_CvsP_all_VIP_sig2 %>%
   filter(Enrichment.dir != "Control")
 
-D37_CvsP_all_VIP_sig_depleted <- D52_CvsP_all_VIP_sig2 %>%
+D37_CvsP_all_VIP_sig_depleted <- D37_CvsP_all_VIP_sig2 %>%
   filter(Enrichment.dir == "Control")
 
 D52_BvsC_all_VIP_sig_accumulated <- D52_BvsC_all_VIP_sig2 %>%
@@ -498,10 +503,10 @@ D52_all_comp_accumulated  <- rbind(D52_BvsC_all_VIP_sig_accumulated, D52_CvsP_al
 D52_all_comp_depleted     <- rbind(D52_BvsC_all_VIP_sig_depleted, D52_CvsP_all_VIP_sig_depleted)
 
 # Plotting
+library(forcats)
 
 D37_accum <- D37_all_comp_accumulated %>%
-  mutate(ordering = -as.numeric(Shared) + VIP,
-         Metabolite = fct_reorder(Metabolite, ordering, .desc = T)) %>%
+  mutate(Metabolite = fct_reorder(Metabolite, VIP)) %>%
   ggplot(aes(x = VIP, y = Metabolite, fill = Comparison)) +
   geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
   geom_point(size = 3, aes(color = Comparison)) +
@@ -516,27 +521,88 @@ D37_accum <- D37_all_comp_accumulated %>%
                      panel.grid.minor = element_blank(),
                      axis.text = element_text(size=10, color="black"), 
                      title = element_text(size=17, face="bold"), 
-                     axis.title = element_text(size=17))
+                     axis.title = element_text(size=17)) +
+  facet_grid(Shared ~ ., scales = "free_y", space = "free")
 
-ggsave(filename="../../output/Metabolomics/Day37_accumulated_VIP.pdf", plot=D37_accum, dpi=300, width=7, height=9, units="in")
+ggsave(filename="../../output/Metabolomics/Day37_accumulated_VIP.jpeg", plot=D37_accum, dpi=300, width=7, height=13, units="in")
 
-# 
-# D37_accum <- ggplot(D37_all_comp_accumulated %>% arrage(Shared, desc(VIP)) %>%
-#                        mutate(Metabolite=factor(Metabolite, levels = Shared)),
-#                        aes(x = VIP, y = Metabolite, fill = Comparison)) +
-#   geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
-#   geom_point(size = 3, aes(color = Comparison)) +
-# #  xlim(1.2, 2) +
-#   scale_colour_manual(values=c("#8B0046", "#468B00")) +
-#   scale_fill_manual(values=c("#8B0046", "#468B00")) +
-#   ylab("") +
-#   xlab("VIP Score") +
-# #  ggtitle("Bleached Unique") +
-#   theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
-#                      panel.grid.major = element_blank(),
-#                      panel.grid.minor = element_blank(),
-#                      axis.text = element_text(size=10, color="black"), 
-#                      title = element_text(size=17, face="bold"), 
-#                      axis.title = element_text(size=17))
+D37_dep <- D37_all_comp_depleted %>%
+  mutate(Metabolite = fct_reorder(Metabolite, VIP)) %>%
+  ggplot(aes(x = VIP, y = Metabolite, fill = Comparison)) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point(size = 3, aes(color = Comparison)) +
+#  xlim(1.2, 2) +
+  scale_colour_manual(values=c("#8B0046", "#468B00")) +
+  scale_fill_manual(values=c("#8B0046", "#468B00")) +
+  ylab("") +
+  xlab("VIP Score") +
+#  ggtitle("Bleached Unique") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=10, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17)) +
+  facet_grid(Shared ~ ., scales = "free_y", space = "free")
 
+ggsave(filename="../../output/Metabolomics/Day37_depleted_VIP.jpeg", plot=D37_dep, dpi=300, width=7, height=13, units="in")
+
+D52_accum <- D52_all_comp_accumulated %>%
+  mutate(Metabolite = fct_reorder(Metabolite, VIP)) %>%
+  ggplot(aes(x = VIP, y = Metabolite, fill = Comparison)) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point(size = 3, aes(color = Comparison)) +
+#  xlim(1.2, 2) +
+  scale_colour_manual(values=c("#8B0046", "#468B00")) +
+  scale_fill_manual(values=c("#8B0046", "#468B00")) +
+  ylab("") +
+  xlab("VIP Score") +
+#  ggtitle("Bleached Unique") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=10, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17)) +
+  facet_grid(Shared ~ ., scales = "free_y", space = "free")
+
+ggsave(filename="../../output/Metabolomics/Day52_accumulated_VIP.jpeg", plot=D52_accum, dpi=300, width=7, height=13, units="in")
+
+D52_dep <- D52_all_comp_depleted %>%
+  mutate(Metabolite = fct_reorder(Metabolite, VIP)) %>%
+  ggplot(aes(x = VIP, y = Metabolite, fill = Comparison)) +
+  geom_hline(aes(yintercept = Metabolite), linetype = "dotted", color = "grey") +
+  geom_point(size = 3, aes(color = Comparison)) +
+#  xlim(1.2, 2) +
+  scale_colour_manual(values=c("#8B0046", "#468B00")) +
+  scale_fill_manual(values=c("#8B0046", "#468B00")) +
+  ylab("") +
+  xlab("VIP Score") +
+#  ggtitle("Bleached Unique") +
+  theme_bw() + theme(panel.border = element_rect(linetype = "solid", color = "black"), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     axis.text = element_text(size=10, color="black"), 
+                     title = element_text(size=17, face="bold"), 
+                     axis.title = element_text(size=17)) +
+  facet_grid(Shared ~ ., scales = "free_y", space = "free")
+
+ggsave(filename="../../output/Metabolomics/Day52_depleted_VIP.jpeg", plot=D52_dep, dpi=300, width=7, height=13, units="in")
+
+```
+
+```{r, echo=FALSE, out.width="100%", fig.cap="Significantly accumulated VIPs on Day 37 compared to control"}
+knitr::include_graphics("../../output/Metabolomics/Day37_accumulated_VIP.jpeg")
+```
+
+```{r, echo=FALSE, out.width="100%", fig.cap="Significantly depleted VIPs on Day 37 compared to control"}
+knitr::include_graphics("../../output/Metabolomics/Day37_depleted_VIP.jpeg")
+```
+
+```{r, echo=FALSE, out.width="100%", fig.cap="Significantly accumulated VIPs on Day 52 compared to control"}
+knitr::include_graphics("../../output/Metabolomics/Day52_accumulated_VIP.jpeg")
+```
+
+```{r, echo=FALSE, out.width="100%", fig.cap="Significantly depleted VIPs on Day 52 compared to control"}
+knitr::include_graphics("../../output/Metabolomics/Day52_depleted_VIP.jpeg")
 ```

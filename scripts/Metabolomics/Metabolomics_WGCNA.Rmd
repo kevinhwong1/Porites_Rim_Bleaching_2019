@@ -1,0 +1,145 @@
+---
+title: "Metabolomics_WGCNA"
+author: "Kevin Wong"
+date: "18/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Pipeline Overview
+
+1. Data preparation
+  + Load and format clean data
+  + Data filtering: PoverA and genefilter
+  + Outlier detection
+2. Network construction and consensus modlue detection
+  + Choosing a soft-thresholding power: Analysis of a network topology β
+  + Co-expression adjacency and topological overlap matrix similarity
+  + Clustering using TOM
+  + Module idenification using dynamicTreeCut
+3. Correlate groups/timepoints
+4. Plot module-trait associations
+5. Plot eigennene over groupings
+6. Calculating gene significance and module membership
+
+
+This pipeline is modified from AH: 
+* https://github.com/AHuffmyer/EarlyLifeHistory_Energetics/blob/master/Mcap2020/Scripts/Metabolomics/metabolomics_WGCNA.Rmd
+
+```{r dependencies, warning=FALSE, message=FALSE}
+
+## install packages if you dont already have them in your library
+if ("tidyverse" %in% rownames(installed.packages()) == 'FALSE') install.packages('tidyverse') 
+if ("vegan" %in% rownames(installed.packages()) == 'FALSE') install.packages('vegan') 
+if ("ggplot2" %in% rownames(installed.packages()) == 'FALSE') install.packages('ggplot2') 
+if ("factoextra" %in% rownames(installed.packages()) == 'FALSE') install.packages('factoextra') 
+if ("ggfortify" %in% rownames(installed.packages()) == 'FALSE') install.packages('ggfortify') 
+if ("naniar" %in% rownames(installed.packages()) == 'FALSE') install.packages('naniar') 
+if ("cowplot" %in% rownames(installed.packages()) == 'FALSE') install.packages('cowplot') 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+if ("mixOmics" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install("mixOmics") 
+if ("RVAideMemoire" %in% rownames(installed.packages()) == 'FALSE') install.packages('RVAideMemoire') 
+if ("VennDiagram" %in% rownames(installed.packages()) == 'FALSE') install.packages('VennDiagram') 
+if ("broom" %in% rownames(installed.packages()) == 'FALSE') install.packages('broom') 
+
+#load packages
+library("ggplot2")
+library('vegan')
+library('factoextra')
+library('ggfortify')
+library('naniar')
+library('cowplot')
+library("mixOmics")
+library("tidyverse")
+library("RVAideMemoire")
+library("VennDiagram")
+library("broom")
+
+if ("genefilter" %in% rownames(installed.packages()) == 'FALSE') install.packages('genefilter') 
+if ("DESeq2" %in% rownames(installed.packages()) == 'FALSE') install.packages('DESeq2') 
+if ("RColorBrewer" %in% rownames(installed.packages()) == 'FALSE') install.packages('RColorBrewer') 
+if ("WGCNA" %in% rownames(installed.packages()) == 'FALSE') install.packages('WGCNA') 
+if ("flashClust" %in% rownames(installed.packages()) == 'FALSE') install.packages('flashClust') 
+if ("gridExtra" %in% rownames(installed.packages()) == 'FALSE') install.packages('gridExtra') 
+if ("ComplexHeatmap" %in% rownames(installed.packages()) == 'FALSE') install.packages('ComplexHeatmap') 
+if ("goseq" %in% rownames(installed.packages()) == 'FALSE') install.packages('goseq') 
+if ("dplyr" %in% rownames(installed.packages()) == 'FALSE') install.packages('dplyr') 
+if ("clusterProfiler" %in% rownames(installed.packages()) == 'FALSE') install.packages('clusterProfiler') 
+if ("pheatmap" %in% rownames(installed.packages()) == 'FALSE') install.packages('pheatmap') 
+if ("magrittr" %in% rownames(installed.packages()) == 'FALSE') install.packages('magrittr') 
+
+library("genefilter")
+library("DESeq2")
+library("RColorBrewer")
+library("WGCNA")
+library("flashClust")
+library("gridExtra")
+library("ComplexHeatmap")
+library("goseq")
+library("dplyr")
+library("clusterProfiler")
+library("pheatmap")
+library("magrittr")
+```
+
+# 1. Data preparation
+## Load and format clean data
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+## Data filtering: PoverA and genefilter
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+##Outlier detection
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+# 2. Network construction and consensus modlue detection
+## Choosing a soft-thresholding power: Analysis of a network topology β
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+## Co-expression adjacency and topological overlap matrix similarity
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+## Clustering using TOM
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+## Module idenification using dynamicTreeCut
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+# 3. Correlate groups/timepoints
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+# 4. Plot module-trait associations
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+# 5. Plot eigennene over groupings
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
+# 6. Calculating gene significance and module membership
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+```
+
