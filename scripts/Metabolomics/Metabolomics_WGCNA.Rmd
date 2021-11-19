@@ -25,9 +25,15 @@ knitr::opts_chunk$set(echo = TRUE)
 5. Plot eigennene over groupings
 6. Calculating gene significance and module membership
 
-
 This pipeline is modified from AH: 
 * https://github.com/AHuffmyer/EarlyLifeHistory_Energetics/blob/master/Mcap2020/Scripts/Metabolomics/metabolomics_WGCNA.Rmd
+
+Initial thoughts: 
+
+* First I will run this with 9 different groupings (3x3 design). Not sure if this is correct, but it will give us an overall idea
+* Second I will run this with 3 times for each time point, or 3 time for each grouping
+* Third I will think about how to use the WGCNA to correlate other datasets (i.e. phys or tag-seq modules)
+
 
 ```{r dependencies, warning=FALSE, message=FALSE}
 
@@ -90,37 +96,407 @@ library("magrittr")
 ## Load and format clean data
 ``` {r, echo=TRUE, warning=FALSE, message=FALSE}
 
+data <- read.csv("../../output/Metabolomics/Norm_Data_All.csv", check.names = FALSE)
+
+data$Grouping <- paste(data$Day, data$Group, sep= "_")
+
+metadata <- data %>%
+  select(Sample.ID, Grouping)
+
+#removing metadata columns except the Sample ID
+data2 <-data[-c(1, 3:5, 301)]
+
+#melting dataset 
+data3 <- melt(data2, id= "Sample.ID") 
+names(data3)[2] <- 'Metabolite'
+
+#Convert the data table to a wide format with samples in columns and metabolites in rows.  
+data4 <- data3%>% 
+  spread(Sample.ID, value)
+
+#Turning metabolite names into rownames
+head(data4) 
+rownames(data4)<-data4$Metabolite 
+data5 <-data4 %>%
+  select(-Metabolite)
+
+#Check that there are no metabolites with 0 counts for all samples. Should return TRUE.  
+rowSums(dplyr::count(data5)) > 0
 ```
 
 ## Data filtering: PoverA and genefilter
+
+Conduct data filtering, this includes:  
+
+*pOverA*: Specifying the minimum count for a proportion of samples for each metabolite. Here, we are using a pOverA of 0.11. This is because we have 45 samples with a minimum of n=5 samples per group Therefore, we will accept genes that are present in 5/45 = 0.11 of the samples because we expect different metabolites by groups as demonstrated by PLSDA analysis. We are further setting the minimum value of metabolites to 1 (median normalized), such that 4% of the samples must have a non-zero normalized metabolite presence in order for the metabolite to remain in the data set.  
+
+Filter in the package "genefilter". Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests.   
+
+
 ``` {r, echo=TRUE, warning=FALSE, message=FALSE}
 
+filt <- filterfun(pOverA(0.11,0.01))
+#create filter for the counts data
+gfilt <- genefilter(data5, filt)
+#identify genes to keep by count filter
+keep <- data5[gfilt,]
+#identify genes to keep by count filter
+keep <- data5[gfilt,]
+#identify gene lists
+n.keep <- rownames(keep)
+#gene count data filtered in PoverA, P percent of the samples have counts over A
+data_filt <- as.data.frame(data5[which(rownames(data5) %in% n.keep),])
+#How many rows do we have before and after filtering?
+nrow(data5) #Before
+nrow(data_filt) #After
+
+#Filtering does not remove any metabolites, all 295 metabolites are used in analysis.  
 ```
 
 ##Outlier detection
 ``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+#Checking that all row and column names match. Should return "TRUE"
+all(rownames(metadata$Sample.ID) %in% colnames(data_filt))
+all(rownames(metadata$Sample.ID) == colnames(data_filt)) 
 
+sampleTree = hclust(dist(data_filt), method = "average");
+# Plot the sample tree: Open a graphic output window of size 12 by 9 inches
+# The user should change the dimensions if the window is too large or too small.
+pdf("../../output/Metabolomics/WGCNA/outliers_metabolites.pdf")
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
+dev.off()
+
+#no metabolite outliers
+
+#Transpose such that samples are in rows and metabolites are in columns.  
+
+
+tdata_filt <- t(data_filt) 
+
+#Look for outliers by examining tree of samples  
+sampleTree = hclust(dist(tdata_filt), method = "average");
+# Plot the sample tree: Open a graphic output window of size 12 by 9 inches
+# The user should change the dimensions if the window is too large or too small.
+pdf("../../output/Metabolomics/WGCNA/outliers_samples.pdf")
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
+dev.off()
+
+# Maybe Control_Ambient_day37_4? 
 ```
 
 # 2. Network construction and consensus modlue detection
 ## Choosing a soft-thresholding power: Analysis of a network topology β
 ``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+# Choose a set of soft-thresholding powers
+#powers <- c(seq(from = 1, to=200, by=2), c(21:30)) #Create a string of numbers from 1 through 10, and even numbers from 10 through 20
+
+allowWGCNAThreads() 
+powers <- c(c(1:20), seq(from = 12, to=20, by=2)) #Create a string of numbers from 1 through 10, and even numbers from 10 through 20
+
+# Call the network topology analysis function
+sft <-pickSoftThreshold(tdata_filt, powerVector = powers, verbose = 5)
+
+#Plot the results.  
+sizeGrWindow(9, 5)
+par(mfrow = c(1,2));
+cex1 = 0.9;
+# # # Scale-free topology fit index as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+      xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+     main = paste("Scale independence"));
+ text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+     labels=powers,cex=cex1,col="red");
+# # # this line corresponds to using an R^2 cut-off
+ abline(h=0.8,col="red")
+# # # Mean connectivity as a function of the soft-thresholding power
+ plot(sft$fitIndices[,1], sft$fitIndices[,5],
+     xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+     main = paste("Mean connectivity"))
+ text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+
+ # Soft Threshold power is 12
+```
+
+
+## Departing from AH script here
+
+https://bioinformaticsworkbook.org/tutorials/wgcna.html#gsc.tab=0
+
+
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+picked_power = 12
+temp_cor <- cor       
+cor <- WGCNA::cor                                             # Force it to use WGCNA cor function (fix a namespace conflict issue)
+netwk <- blockwiseModules(tdata_filt,                         # <= input here
+
+                          # == Adjacency Function ==
+                          power = picked_power,               # <= power here
+                          networkType = "unsigned",
+
+                          # == Tree and Block Options ==
+                          deepSplit = 2,
+                          pamRespectsDendro = F,
+                          # detectCutHeight = 0.75,
+                          minModuleSize = 5,                  #condsider inreasing or decreasing this
+                          maxBlockSize = 4000,
+
+                          # == Module Adjustments ==
+                          reassignThreshold = 0,
+                          mergeCutHeight = 0.25,
+
+                          # == TOM == Archive the run results in TOM file (saves time)
+                          saveTOMs = T,
+                          saveTOMFileBase = "ER",
+
+                          # == Output Options
+                          numericLabels = T,
+                          verbose = 3)
+
+cor <- temp_cor     # Return cor function to original namespace
+
+
+# Convert labels to colors for plotting
+mergedColors = labels2colors(netwk$colors)
+# Plot the dendrogram and the module colors underneath
+plotDendroAndColors(
+  netwk$dendrograms[[1]],
+  mergedColors[netwk$blockGenes[[1]]],
+  "Module colors",
+  dendroLabels = FALSE,
+  hang = 0.03,
+  addGuide = TRUE,
+  guideHang = 0.05 )
 
 ```
 
-## Co-expression adjacency and topological overlap matrix similarity
+
+## Relate Module (cluster) Assignments to SampleID 
+
 ``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+module_df <- data.frame(
+  Metabolite = names(netwk$colors),
+  colors = labels2colors(netwk$colors)
+)
+
+module_df[1:5,]
+
+write.csv(module_df, "../../output/Metabolomics/WGCNA/metabolite_modules.csv")
+
+# Get Module Eigengenes per cluster
+MEs0 <- moduleEigengenes(tdata_filt, mergedColors)$eigengenes
+
+# Reorder modules so similar modules are next to each other
+MEs0 <- orderMEs(MEs0)
+module_order = names(MEs0) %>% gsub("ME","", .)
+
+# Add Sample names
+MEs0$Sample.ID = row.names(MEs0)
+
+# tidy & plot data
+mME = MEs0 %>%
+  pivot_longer(-Sample.ID) %>%
+  mutate(
+    name = gsub("ME", "", name),
+    name = factor(name, levels = module_order)
+  )
+
+mME %>% ggplot(., aes(x=Sample.ID, y=name, fill=value)) +
+  geom_tile() +
+  theme_bw() +
+  scale_fill_gradient2(
+    low = "blue",
+    high = "red",
+    mid = "white",
+    midpoint = 0,
+    limit = c(-1,1)) +
+  theme(axis.text.x = element_text(angle=90)) +
+  labs(title = "Module-Sample Relationships", y = "Modules", fill="corr")
+```
+
+
+## Relate Module (cluster) Assignments to Groupings 
+
+Prepare trait data. Data has to be numeric, so I will substitute time points/developmental stages for numeric values. The "trait" we are considering here is Grouping  
+
+Make a dataframe that has a column for each lifestage name and a row for samples. Populate a 1 for samples that match each Group and a 0 for samples not matching respective Groups 
+
+This process changes Groups from a categorical variable into a binary variable. This will allow for correlations between mean eigengenes and Groups  
+
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+metadata$num <- c("1")
+allTraits <- as.data.frame(pivot_wider(metadata, names_from = Grouping, values_from = num, id_cols = Sample.ID))
+allTraits[is.na(allTraits)] <- c("0")
+rownames(allTraits) <- allTraits$Sample.ID
+datTraits <- allTraits[,c(-1)]
+head(datTraits)
+
+# Define numbers of genes and samples and print. 
+nMetabolites = ncol(tdata_filt)
+nSamples = nrow(tdata_filt)
+nMetabolites #295
+nSamples#45
+
+# Correlations of traits with eigengenes
+moduleTraitCor = cor(MEs0, datTraits, use = "p");
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
+Colors=sub("ME","", names(MEs0))
+moduleTraitTree = hclust(dist(t(moduleTraitCor)), method = "average")
+pdf(file="../../output/Metabolomics/WGCNA/ModuleTraitClusterTree.pdf", height=8, width=22)
+plot(moduleTraitTree)
+dev.off()
+
+# Correlations of metabolites with eigengenes. Calculate correlations between ME's and groups 
+moduleGeneCor=cor(MEs0,tdata_filt)
+moduleGenePvalue = corPvalueStudent(moduleGeneCor, nSamples);
+head(moduleGenePvalue)
+
+#Calculate kME values (module membership). 
+datKME = signedKME(tdata_filt, MEs0, outputColumnName = "kME")
+head(datKME)
+
+#Save module colors and labels for use in subsequent analyses.  
+save(MEs, moduleLabels, moduleColors, geneTree, file = "Mcap2020/Output/Metabolomics/NetworkConstructionWGCNA.RData") 
+```
+
+## Plot module-trait associations
+
+Represent module trait correlations as a heatmap 
+```{r}
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",signif(moduleTraitPvalue, 1), ")", sep = "")
+dim(textMatrix) = dim(moduleTraitCor)
+head(textMatrix)
+labeledHeatmap(Matrix = moduleTraitCor, xLabels = names(datTraits),  yLabels = names(MEs0), ySymbols = names(MEs0), cex.lab.y= 0.55, cex.lab.x= 0.55, colors = blueWhiteRed(50), textMatrix = textMatrix, setStdMargins = TRUE, cex.text = 0.25, textAdj = , zlim = c(-1,1), main = paste("Module-trait relationships"))
+pdf(file="../../output/Metabolomics/WGCNA/Module-trait-relationships.pdf")
+labeledHeatmap(Matrix = moduleTraitCor, xLabels = names(datTraits),  yLabels = names(MEs0), ySymbols = names(MEs0), cex.lab.y= 0.55, cex.lab.x= 0.55, colors = blueWhiteRed(50), textMatrix = textMatrix, setStdMargins = TRUE, cex.text = 0.25, textAdj = , zlim = c(-1,1), main = paste("Module-trait relationships"))
+dev.off()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Co-expression adjacency and topological overlap matrix similarity
+
+Co-expression similarity and adjacency, using the soft thresholding power 13 and translate the adjacency into topological overlap matrix to calculate the corresponding dissimilarity. I will use a **signed network**: https://peterlangfelder.com/2018/11/25/__trashed/
+
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+options(stringsAsFactors = FALSE) #The following setting is important, do not omit.
+#enableWGCNAThreads() #Allow multi-threading within WGCNA. 
+allowWGCNAThreads()
+
+# 
+# #Load the data saved in the first part
+adjTOM <- tdata_filt
+adjTOM
+# 
+# #Run analysis
+softPower=12 #Set softPower
+adjacency=adjacency(tdata_filt, power=softPower, type="unsigned") #Calculate adjacency
+TOM= TOMsimilarity(adjacency,TOMType = "unsigned") #Translate adjacency into topological overlap matrix
+#this step can take awhile 
+dissTOM= 1-TOM #Calculate dissimilarity in TOM
+save(adjacency, TOM, dissTOM, file = "../../output/Metabolomics/WGCNA/adjTOM.RData") #Save 
+save(dissTOM, file = "../../output/Metabolomics/WGCNA/dissTOM.RData") #Save 
 
 ```
 
 ## Clustering using TOM
 ``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+#Load in dissTOM file obtained from previous R chunk.    
+dissTOM_in <- load(file="../../output/Metabolomics/WGCNA/dissTOM.RData") 
+dissTOM_in
 
+#Form distance matrix
+
+geneTree=flashClust(as.dist(dissTOM), method="average")
+
+#We will now plot a dendrogram of metabolites Each leaf corresponds to a metabolite, branches grouping together densely are interconnected, highly co-expressed metabolites.  
+
+pdf(file="../../output/Metabolomics/WGCNA/dissTOMClustering.pdf", width=10, height=10)
+plot(geneTree, xlab="", sub="", main= "Gene Clustering on TOM-based dissimilarity", labels= FALSE,hang=0.04)
+dev.off()
 ```
 
 ## Module idenification using dynamicTreeCut
+
+Module identification is essentially cutting the branches off the tree in the dendrogram above. We like large modules, so we set the **minimum module size** relatively high, so we will set the minimum size at 5. 5 chosen for now to try out, but return to this for metabolomics specific numbers.  
+
 ``` {r, echo=TRUE, warning=FALSE, message=FALSE}
 
+minModuleSize = 5
+dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
+deepSplit = 2, pamRespectsDendro = FALSE,
+minClusterSize = minModuleSize)
+table(dynamicMods) #list modules and respective sizes
+save(dynamicMods, geneTree, file = "../../output/Metabolomics/WGCNA/dyMod_geneTree.RData") #Save to load into RStudio
+
+#Module 0 is reserved for unassigned metabolites. The are other modules will be listed largest to smallest.
+#Load modules calculated from the adjacency matrix.  
+
+dyMod_geneTree <- load(file = "../../output/Metabolomics/WGCNA/dyMod_geneTree.RData")
+dyMod_geneTree
+
+# Plot the module assignment under the gene dendrogram
+#dynamicColors = labels2colors(dynamicMods) # Convert numeric labels into colors
+dynamicColors=dynamicMods
+table(dynamicColors)
+pdf(file="../../output/Metabolomics/WGCNA/dissTOMColorClustering.pdf", width=20, height=20)
+plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut", dendroLabels = FALSE, hang = 0.03, addGuide = TRUE, guideHang = 0.05, main = "Gene dendrogram and module colors")
+dev.off()
+
+
+#Merge modules with >85% eigengene similarity.** Most studies use somewhere between 80-90% similarity. It looks like most of our modules are highly related so I will use 90% similarity as my merging threshold.
+
+MEDissThres= 0.15 #merge modules that are 85% similar
+pdf(file="../../output/Metabolomics/WGCNA/eigengeneClustering2.pdf", width = 20)
+plot(METree, main = "Clustering of module eigengenes", xlab = "", sub = "")
+abline(h=MEDissThres, col="red")
+dev.off()
+merge= mergeCloseModules(data_filt, dynamicColors, cutHeight= MEDissThres, verbose =3)
+mergedColors= merge$colors
+mergedMEs= merge$newMEs
+pdf(file="../../output/Metabolomics/WGCNA/mergedClusters.pdf", width=20, height=20)
+plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors), c("Dynamic Tree Cut", "Merged dynamic"), dendroLabels= FALSE, hang=0.03, addGuide= TRUE, guideHang=0.05)
+dev.off()
+```
+
+Save new colors
+```{r}
+moduleLabels=mergedColors
+moduleColors = mergedColors # Rename to moduleColors
+#colorOrder = c("grey", standardColors(50)); # Construct numerical labels corresponding to the colors
+#moduleLabels = match(moduleColors, colorOrder)-1;
+MEs = mergedMEs;
+ncol(MEs) #How many modules do we have now?
 ```
 
 # 3. Correlate groups/timepoints
