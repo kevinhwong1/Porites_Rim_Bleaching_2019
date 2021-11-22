@@ -1,0 +1,16 @@
+"","total","expected","hits","Raw p","Holm p","FDR"
+"Aminoacyl-tRNA biosynthesis",48,0.252,7,1.55e-10,1.3e-08,1.3e-08
+"Valine, leucine and isoleucine biosynthesis",8,0.042,3,5.28e-06,0.000438,0.000222
+"D-Glutamine and D-glutamate metabolism",6,0.0315,2,0.000359,0.0294,0.0101
+"Valine, leucine and isoleucine degradation",40,0.21,3,0.00086,0.0697,0.0181
+"Alanine, aspartate and glutamate metabolism",28,0.147,2,0.00854,0.683,0.143
+"Phenylalanine, tyrosine and tryptophan biosynthesis",4,0.021,1,0.0209,1,0.292
+"Nitrogen metabolism",6,0.0315,1,0.0312,1,0.374
+"Purine metabolism",65,0.342,2,0.0426,1,0.447
+"Phenylalanine metabolism",10,0.0526,1,0.0515,1,0.481
+"Arginine biosynthesis",14,0.0736,1,0.0714,1,0.6
+"Pantothenate and CoA biosynthesis",19,0.0999,1,0.0958,1,0.704
+"Selenocompound metabolism",20,0.105,1,0.101,1,0.704
+"Glyoxylate and dicarboxylate metabolism",32,0.168,1,0.157,1,0.967
+"Cysteine and methionine metabolism",33,0.173,1,0.161,1,0.967
+"Pyrimidine metabolism",39,0.205,1,0.188,1,1

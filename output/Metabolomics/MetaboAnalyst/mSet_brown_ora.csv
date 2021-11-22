@@ -1,0 +1,6 @@
+"","total","expected","hits","Raw p","Holm p","FDR"
+"Starch and sucrose metabolism",18,0.071,3,2.72e-05,0.00229,0.00229
+"Galactose metabolism",27,0.106,3,9.62e-05,0.00799,0.00404
+"Neomycin, kanamycin and gentamicin biosynthesis",2,0.00788,1,0.00787,0.645,0.22
+"Alanine, aspartate and glutamate metabolism",28,0.11,1,0.106,1,1
+"Aminoacyl-tRNA biosynthesis",48,0.189,1,0.175,1,1
