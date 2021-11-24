@@ -110,6 +110,7 @@ data2 <-data[-c(1, 3:5, 301)]
 #melting dataset 
 data3 <- melt(data2, id= "Sample.ID") 
 names(data3)[2] <- 'Metabolite'
+data3$value <- as.numeric(data3$value)
 
 #Convert the data table to a wide format with samples in columns and metabolites in rows.  
 data4 <- data3%>% 
@@ -120,6 +121,7 @@ head(data4)
 rownames(data4)<-data4$Metabolite 
 data5 <-data4 %>%
   select(-Metabolite)
+
 
 #Check that there are no metabolites with 0 counts for all samples. Should return TRUE.  
 rowSums(dplyr::count(data5)) > 0
@@ -151,14 +153,14 @@ data_filt <- as.data.frame(data5[which(rownames(data5) %in% n.keep),])
 nrow(data5) #Before
 nrow(data_filt) #After
 
-#Filtering does not remove any metabolites, all 295 metabolites are used in analysis.  
+#Filtering removed 1 metabolite, 291 metabolites are used in analysis.  
 ```
 
 ##Outlier detection
 ``` {r, echo=TRUE, warning=FALSE, message=FALSE}
 #Checking that all row and column names match. Should return "TRUE"
 all(rownames(metadata$Sample.ID) %in% colnames(data_filt))
-all(rownames(metadata$Sample.ID) == colnames(data_filt)) 
+all(rownames(metadata$Sample.ID) == colnames(data_filt))
 
 sampleTree = hclust(dist(data_filt), method = "average");
 # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
@@ -169,7 +171,7 @@ dev.off()
 
 #no metabolite outliers
 
-#Transpose such that samples are in rows and metabolites are in columns.  
+#Transpose such that samples are in rows and metabolites are in columns.
 
 tdata_filt <- t(data_filt) 
 
@@ -214,7 +216,7 @@ plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
      main = paste("Mean connectivity"))
  text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
 
- # Soft Threshold power is 12
+ # Soft Threshold power is 12, 11 is close and reduced the number of modules to 4 instead of 5
 ```
 
 
@@ -440,6 +442,9 @@ sample_metadata$Day <- as.factor(sample_metadata$Day)
 mME_meta <- merge(mME, sample_metadata, by = "Sample.ID") %>%
   rename(Module = name)
 
+
+
+
 expression_plots<-mME_meta%>%
 #  group_by(Module) %>%
   ggplot(aes(x=Day, y=value, fill=Group)) +
@@ -535,6 +540,17 @@ mSet_blue<-Setup.MapData(mSet_blue, cmpd.vec.blue)
 mSet_blue<-CrossReferencing(mSet_blue, "name")
 mSet_blue<-CreateMappingResultTable(mSet_blue)
 mSet_blue<-GetCandidateList(mSet_blue)
+
+mSet_blue<-PerformDetailMatch(mSet_blue, "N-acetyl-L-ornithine")
+mSet_blue<-SetCandidate(mSet_blue, "N-acetyl-L-ornithine", "N-Acetylornithine")
+
+mSet_blue<-PerformDetailMatch(mSet_blue, "NG-dimethyl-L-arginine")
+mSet_blue<-SetCandidate(mSet_blue, "NG-dimethyl-L-arginine", "Asymmetric dimethylarginine")
+
+# mSet_blue<-PerformDetailMatch(mSet_blue, "Xanthosine-5-phosphate")
+# mSet_blue<-GetCandidateList(mSet_blue)
+# mSet_blue<-SetCandidate(mSet_blue, "Xanthosine-5-phosphate", "Xanthylic acid") #not working for some reason
+
 mSet_blue[["name.map"]][["hit.values"]]
 mSet_blue<-SetMetabolomeFilter(mSet_blue, F)
 
@@ -556,6 +572,16 @@ cmpd.vec.turquoise<-c(module_turquoise$Metabolite)
 mSet_turquoise<-Setup.MapData(mSet_turquoise, cmpd.vec.turquoise)
 mSet_turquoise<-CrossReferencing(mSet_turquoise, "name")
 mSet_turquoise<-CreateMappingResultTable(mSet_turquoise)
+
+mSet_turquoise<-PerformDetailMatch(mSet_turquoise, "5- Methylthioadenosine")
+mSet_turquoise<-GetCandidateList(mSet_turquoise)
+mSet_turquoise<-SetCandidate(mSet_turquoise, "5- Methylthioadenosine", "5'-Methylthioadenosine")
+mSet_turquoise<-PerformDetailMatch(mSet_turquoise, "Acetyl proline")
+mSet_turquoise<-GetCandidateList(mSet_turquoise)
+mSet_turquoise<-PerformDetailMatch(mSet_turquoise, "N-acetyl-glutamine")
+mSet_turquoise<-GetCandidateList(mSet_turquoise)
+mSet_turquoise<-SetCandidate(mSet_turquoise, "N-acetyl-glutamine", "N-Acetylglutamine")
+
 mSet_turquoise<-GetCandidateList(mSet_turquoise)
 mSet_turquoise[["name.map"]][["hit.values"]]
 mSet_turquoise<-SetMetabolomeFilter(mSet_turquoise, F)
@@ -569,6 +595,77 @@ mSet_turquoise<-CalculateHyperScore(mSet_turquoise)
 mSet_turquoise_Path_KEGG <- mSet_turquoise$api
 mSet_turquoise_ora <- as.data.frame(mSet_turquoise_Path_KEGG$ora.results)
 write.csv(mSet_turquoise_ora, "../../output/Metabolomics/MetaboAnalyst/mSet_turquoise_ora.csv")
+
+
+
+# Enrichment analysis for grey module
+
+mSet_grey <-InitDataObjects("conc", "msetora", FALSE)
+cmpd.vec.grey<-c(module_grey$Metabolite)
+mSet_grey<-Setup.MapData(mSet_grey, cmpd.vec.grey)
+mSet_grey<-CrossReferencing(mSet_grey, "name")
+mSet_grey<-CreateMappingResultTable(mSet_grey)
+
+mSet_grey<-PerformDetailMatch(mSet_grey, "1 3-Dimethyluric acid")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "1 3-Dimethyluric acid", "1,3-Dimethyluric acid")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Acetyl glycine")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Acetyl glycine", "Phenylacetylglycine")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Acetyl-arginine")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Acetyl-arginine", "N-a-Acetyl-L-arginine")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Arginine-Alanine")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Arginine-Alanine", "Arginyl-Alanine")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Arginine-Glutamine")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Arginine-Glutamine", "Arginyl-Glutamine")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Arginine-Valine")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Arginine-Valine", "Arginyl-Valine")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Dihydroxybenzeneacetic acid")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Dihydroxybenzeneacetic acid", "3,4-Dihydroxybenzeneacetic acid")
+# mSet_grey<-PerformDetailMatch(mSet_grey, "gamma-amino butyrate")
+# mSet_grey<-GetCandidateList(mSet_grey)
+# mSet_grey<-SetCandidate(mSet_grey, "gamma-amino butyrate", "Gamma-Aminobutyric acid")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Glutaryl-carnitine")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-PerformDetailMatch(mSet_grey, "Hydroxyphenyl pyruvate")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Hydroxyphenyl pyruvate", "3-(3,4-Dihydroxyphenyl)pyruvate")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Lysine-Glutamine")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Lysine-Glutamine", "Lysyl-Glutamine")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Methyloxovaleric acid (Ketoleucine)")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-PerformDetailMatch(mSet_grey, "Methylphenyllactate")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Methylphenyllactate", "3-Methylphenylacetic acid")
+mSet_grey<-PerformDetailMatch(mSet_grey, "N N N-Trimethyllysine")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "N N N-Trimethyllysine", "N6,N6,N6-Trimethyl-L-lysine")
+# mSet_grey<-PerformDetailMatch(mSet_grey, "Pyrroline-5-carboxylic acid")
+# mSet_grey<-GetCandidateList(mSet_grey)
+# mSet_grey<-SetCandidate(mSet_grey, "Pyrroline-5-carboxylic acid", "1-Pyrroline-5-carboxylic acid")
+mSet_grey<-PerformDetailMatch(mSet_grey, "Ribose phosphate")
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey<-SetCandidate(mSet_grey, "Ribose phosphate", "Ribose 1-phosphate")
+
+mSet_grey<-GetCandidateList(mSet_grey)
+mSet_grey[["name.map"]][["hit.values"]]
+mSet_grey<-SetMetabolomeFilter(mSet_grey, F)
+
+mSet_grey_dataset <- mSet_grey$dataSet #extracting input dataframe
+mSet_grey_KEGG <- as.data.frame(mSet_grey_dataset$map.table) #extracting KEGG terms
+write.csv(mSet_grey_KEGG, "../../output/Metabolomics/MetaboAnalyst/mSet_grey_KEGG.csv") #Invesrigate KEGG matching further
+
+mSet_grey<-SetCurrentMsetLib(mSet_grey, "kegg_pathway", 2)
+mSet_grey<-CalculateHyperScore(mSet_grey)
+mSet_grey_Path_KEGG <- mSet_grey$api
+mSet_grey_ora <- as.data.frame(mSet_grey_Path_KEGG$ora.results)
+write.csv(mSet_grey_ora, "../../output/Metabolomics/MetaboAnalyst/mSet_grey_ora.csv")
 
 ```
 

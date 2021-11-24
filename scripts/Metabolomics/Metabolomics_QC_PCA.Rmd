@@ -95,13 +95,13 @@ peaks_neg3_clean<-peak.neg3[!grepl("NegIS", peak.neg3$compound),] #remove NEG
 length(peaks_neg3_clean$compound) #121 metabolites in data set after cleaning NEG_IS
 
 peaks_neg3_clean<-peaks_neg3_clean%>%
-  mutate(compound = str_remove(compound, pattern=fixed('(+HAc)')))%>% #rename any with +HAc 
+  mutate(compound = str_remove(compound, pattern=fixed(' (+HAc)')))%>% #rename any with +HAc 
   mutate(compound = as.factor(compound))
 length(peaks_neg3_clean$compound) #121 metabolites in data set
 
 peaks_neg3_clean<-peaks_neg3_clean%>%
   filter(compound != "NAD+") %>% # Removing the NAD+ without the SIM 
-  mutate(compound = str_remove(compound, pattern=fixed('(SIM)')))%>% #rename any with SIM 
+  mutate(compound = str_remove(compound, pattern=fixed(' (SIM)')))%>% #rename any with SIM 
   mutate(compound = as.factor(compound))
 length(peaks_neg3_clean$compound) #120 metabolites in data set
 
@@ -115,7 +115,7 @@ neg.mean <- data.frame(ID=peaks_neg3_clean[,1], Means=rowMeans(peaks_neg3_clean[
 cmp <- comparedf(pos.mean, neg.mean, by = "ID",
                  tol.factor = "labels")        # match only factor labels
 
-#n.diffs(cmp) #58 shared metabolites
+n.diffs(cmp) #61 shared metabolites
 
 list.diffs <- as.data.frame(do.call(cbind, diffs(cmp))) #creating a dataframe with shared metabolites as a list
 
@@ -185,7 +185,7 @@ peak.all4 <- peak.all3 %>% spread(compound, Norm.IonCount)
 #adding 1000 to all variable to account for 0 values and log normalization 
 #Log normalization (https://www.intechopen.com/books/metabolomics-fundamentals-and-applications/processing-and-visualization-of-metabolomics-data-using-r)
 
-peak.all5 <- log((peak.all4[5:299] + 1000), 2)
+peak.all5 <- log((peak.all4[5:ncol(peak.all4)] + 1000), 2)
 
 norm.data.all <- cbind(peak.all4[1:4], peak.all5)
 
@@ -217,7 +217,7 @@ peak.all.known4 <- peak.all.known3 %>% spread(compound, Norm.IonCount)
 #adding 1000 to all variable to account for 0 values and log normalization 
 #Log normalization (https://www.intechopen.com/books/metabolomics-fundamentals-and-applications/processing-and-visualization-of-metabolomics-data-using-r)
 
-peak.all.known5 <- log((peak.all.known4[5:171] + 1000), 2)
+peak.all.known5 <- log((peak.all.known4[5:ncol(peak.all.known4)] + 1000), 2)
 
 norm.data.known <- cbind(peak.all.known4[1:4], peak.all.known5)
 

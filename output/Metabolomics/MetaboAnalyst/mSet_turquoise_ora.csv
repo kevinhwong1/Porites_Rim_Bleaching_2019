@@ -1,16 +1,16 @@
 "","total","expected","hits","Raw p","Holm p","FDR"
-"Nicotinate and nicotinamide metabolism",15,0.118,3,0.000162,0.0136,0.0136
-"Glycerophospholipid metabolism",36,0.284,2,0.0309,1,1
-"Taurine and hypotaurine metabolism",8,0.0631,1,0.0615,1,1
-"Purine metabolism",65,0.512,2,0.09,1,1
-"Arginine biosynthesis",14,0.11,1,0.105,1,1
-"Histidine metabolism",16,0.126,1,0.12,1,1
-"Pantothenate and CoA biosynthesis",19,0.15,1,0.14,1,1
-"Ether lipid metabolism",20,0.158,1,0.147,1,1
-"beta-Alanine metabolism",21,0.166,1,0.154,1,1
-"Alanine, aspartate and glutamate metabolism",28,0.221,1,0.2,1,1
-"Glycine, serine and threonine metabolism",33,0.26,1,0.232,1,1
-"Cysteine and methionine metabolism",33,0.26,1,0.232,1,1
-"Fatty acid degradation",39,0.307,1,0.268,1,1
-"Primary bile acid biosynthesis",46,0.363,1,0.309,1,1
-"Aminoacyl-tRNA biosynthesis",48,0.378,1,0.32,1,1
+"Nicotinate and nicotinamide metabolism",15,0.138,3,0.000265,0.0222,0.0222
+"Cysteine and methionine metabolism",33,0.304,2,0.0353,1,1
+"Glycerophospholipid metabolism",36,0.331,2,0.0414,1,1
+"Taurine and hypotaurine metabolism",8,0.0736,1,0.0714,1,1
+"Purine metabolism",65,0.598,2,0.118,1,1
+"Arginine biosynthesis",14,0.129,1,0.122,1,1
+"Histidine metabolism",16,0.147,1,0.138,1,1
+"Pantothenate and CoA biosynthesis",19,0.175,1,0.162,1,1
+"Ether lipid metabolism",20,0.184,1,0.17,1,1
+"beta-Alanine metabolism",21,0.193,1,0.177,1,1
+"Alanine, aspartate and glutamate metabolism",28,0.258,1,0.23,1,1
+"Glycine, serine and threonine metabolism",33,0.304,1,0.265,1,1
+"Fatty acid degradation",39,0.359,1,0.306,1,1
+"Primary bile acid biosynthesis",46,0.423,1,0.35,1,1
+"Aminoacyl-tRNA biosynthesis",48,0.442,1,0.363,1,1
