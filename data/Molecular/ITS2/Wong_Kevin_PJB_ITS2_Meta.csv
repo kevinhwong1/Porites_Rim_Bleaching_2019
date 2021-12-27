@@ -1,0 +1,61 @@
+﻿,,,,host_info if applicable,,,,,,sampling info if applicable,,,,Please place any additional columns you wish to add to the right of 'collection_depth'
+sample_name,fastq_fwd_file_name,fastq_rev_file_name,sample_type,host_phylum,host_class,host_order,host_family,host_genus,host_species,collection_latitude,collection_longitude,collection_date,collection_depth,life_stage
+R37-A1,WSH001_S1_L001_R1_001.fastq.gz  ,WSH001_S1_L001_R2_001.fastq.gz  ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R23-A2,WSH002_S13_L001_R1_001.fastq.gz ,WSH002_S13_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R20-A2,WSH003_S25_L001_R1_001.fastq.gz ,WSH003_S25_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R35-A2,WSH004_S37_L001_R1_001.fastq.gz ,WSH004_S37_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R40-A2,WSH005_S49_L001_R1_001.fastq.gz ,WSH005_S49_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R17-A1,WSH006_S61_L001_R1_001.fastq.gz ,WSH006_S61_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R29-A2,WSH007_S73_L001_R1_001.fastq.gz ,WSH007_S73_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R11-A2,WSH008_S85_L001_R1_001.fastq.gz ,WSH008_S85_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R20-A4,WSH009_S2_L001_R1_001.fastq.gz  ,WSH009_S2_L001_R2_001.fastq.gz  ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R28-A4,WSH010_S14_L001_R1_001.fastq.gz ,WSH010_S14_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R19-A1,WSH011_S26_L001_R1_001.fastq.gz ,WSH011_S26_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R20-A1,WSH012_S38_L001_R1_001.fastq.gz,WSH012_S38_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R8-A1,WSH013_S50_L001_R1_001.fastq.gz ,WSH013_S50_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R11-A1,WSH014_S62_L001_R1_001.fastq.gz ,WSH014_S62_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R32-A4,WSH015_S74_L001_R1_001.fastq.gz ,WSH015_S74_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R7-A4,WSH016_S86_L001_R1_001.fastq.gz ,WSH016_S86_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R32-A2,WSH017_S3_L001_R1_001.fastq.gz  ,WSH017_S3_L001_R2_001.fastq.gz  ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R28-A2,WSH018_S15_L001_R1_001.fastq.gz ,WSH018_S15_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R7-A2,WSH019_S27_L001_R1_001.fastq.gz ,WSH019_S27_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R19-A2,WSH020_S39_L001_R1_001.fastq.gz ,WSH020_S39_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R36-A4,WSH021_S51_L001_R1_001.fastq.gz ,WSH021_S51_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R35-A4,WSH022_S63_L001_R1_001.fastq.gz ,WSH022_S63_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R8-A4,WSH023_S75_L001_R1_001.fastq.gz ,WSH023_S75_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R29-A1,WSH024_S87_L001_R1_001.fastq.gz ,WSH024_S87_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R26-A1,WSH025_S4_L001_R1_001.fastq.gz  ,WSH025_S4_L001_R2_001.fastq.gz  ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R19-A4,WSH026_S16_L001_R1_001.fastq.gz ,WSH026_S16_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R17-A2,WSH027_S28_L001_R1_001.fastq.gz ,WSH027_S28_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R37-A2,WSH028_S40_L001_R1_001.fastq.gz ,WSH028_S40_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R32-A1,WSH029_S52_L001_R1_001.fastq.gz ,WSH029_S52_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R36-A1,WSH030_S64_L001_R1_001.fastq.gz ,WSH030_S64_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R7-A1,WSH031_S76_L001_R1_001.fastq.gz ,WSH031_S76_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R26-A2,WSH032_S88_L001_R1_001.fastq.gz ,WSH032_S88_L001_R2_001.fastq.gz ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R8-A2,WSH033_S5_L001_R1_001.fastq.gz  ,WSH033_S5_L001_R2_001.fastq.gz  ,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R36-A2,WSH034_S17_L001_R1_001.fastq.gz ,WSH034_S17_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R11-A4,WSH035_S29_L001_R1_001.fastq.gz,WSH035_S29_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R29-A4,WSH036_S41_L001_R1_001.fastq.gz,WSH036_S41_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R23-A1,WSH037_S53_L001_R1_001.fastq.gz,WSH037_S53_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R35-A1,WSH038_S65_L001_R1_001.fastq.gz,WSH038_S65_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R28-A1,WSH039_S77_L001_R1_001.fastq.gz,WSH039_S77_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R23-A4,WSH040_S89_L001_R1_001.fastq.gz,WSH040_S89_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R37-A4,WSH041_S6_L001_R1_001.fastq.gz,WSH041_S6_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R40-A4,WSH042_S18_L001_R1_001.fastq.gz,WSH042_S18_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R26-A4,WSH043_S30_L001_R1_001.fastq.gz,WSH043_S30_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R40-A1,WSH044_S42_L001_R1_001.fastq.gz,WSH044_S42_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+R17-A4,WSH045_S54_L001_R1_001.fastq.gz,WSH045_S54_L001_R2_001.fastq.gz,coral_field,cnidaria,anthozoa,scleractinia,poritidae,porites,astreoides,32.457222,-64.834722,2019-08-28,10 m,Adult
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
