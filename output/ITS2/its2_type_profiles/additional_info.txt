@@ -1,0 +1,5 @@
+Species references
+Trench, R. K. and L.-v. Thinh (1995). Gymnodinium linucheae sp. nov.: The dinoflagellate symbiont of the jellyfish Linuche unguiculata. European Journal of Phycology 30(2): 149-154.
+LaJeunesse, T. C., D. T. Pettay, E. M. Sampayo, N. Phongsuwan, B. Brown, D. O. Obura, O. Hoegh-Guldberg and W. K. Fitt (2010). Long-standing environmental conditions, geographic isolation and host-symbiont specificity influence the relative ecological dominance and genetic diversification of coral endosymbionts in the genus Symbiodinium. Journal of Biogeography 37(5): 785-800.
+['Output as part of data_analysis ID: 4; Number of data_set objects as part of analysis = 1; submitting_user: kevinhwong1; time_stamp: 20211227T125938']
+Data_set ID: 10; Data_set name: PJB_1; submitting_user: kevinhwong1; time_stamp: 20211227T120213
