@@ -60,6 +60,7 @@ main.py --load /data/putnamlab/kevin_wong1/PJB_ITS2/raw_reads \
 
 #### Running analysis
 
+`nano sp_analysis.sh`
 
 ```bash
 #!/bin/bash
@@ -86,7 +87,7 @@ export PYTHONPATH=/data/putnamlab/kevin_wong1/SymPortal/:/data/putnamlab/kevin_w
 export PATH=/data/putnamlab/kevin_wong1/SymPortal/:/data/putnamlab/kevin_wong1/SymPortal/bin:$PATH
 
 # Running analysis
-./main.py --analyse 9 --name PJB_analysis --num_proc $SLURM_CPUS_ON_NODE
+./main.py --analyse 10 --name PJB_analysis --num_proc $SLURM_CPUS_ON_NODE
 
 # Checking data analysis instances
 ./main.py --display_analyses
@@ -94,5 +95,5 @@ export PATH=/data/putnamlab/kevin_wong1/SymPortal/:/data/putnamlab/kevin_wong1/S
 ```
 
 ```bash
-scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/SymPortal/outputs/analyses/3/20211216T114913/its2_type_profiles /Users/kevinwong/MyProjects/Thermal_Transplant_Molecular/output/ITS2/.
+scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/SymPortal/outputs/analyses/4/20211227T125938/its2_type_profiles /Users/kevinwong/MyProjects/Porites_Rim_Bleaching_2019/output/ITS2/.
 ``
