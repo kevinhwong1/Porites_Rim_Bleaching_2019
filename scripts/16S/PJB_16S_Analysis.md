@@ -155,6 +155,43 @@ scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/multiqc_
 
 ![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_sequence_counts_plot.png)
 
+##### Sequence Quality
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_per_base_sequence_quality_plot.png)
+
+##### Per Sequence Quality Scores
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_per_sequence_quality_scores_plot.png)
+
+##### Per Sequence GC Content
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_per_sequence_gc_content_plot.png)
+
+##### Per Base N Content
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_per_base_n_content_plot.png)
+
+##### Sequence Length Distribution
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_sequence_length_distribution_plot.png)
+
+##### Sequence Duplication Levels
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_sequence_duplication_levels_plot.png)
+
+##### Overrepresented Sequences
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_overrepresented_sequencesi_plot.png)
+
+##### Adapter Content
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_adapter_content_plot.png)
+
+##### Status Check
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc-status-check-heatmap.png)
+
+
 # Create Metadata files
 
 ```bash
@@ -179,7 +216,7 @@ scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/metadata
 
 Run the Sample manifest file section in 16S_metadata.R file and then return to the following steps.
 
-R script:
+**R script:**
 ```bash
 ## Creating metadata files for 16S pipeline
 ## Emma Strand created 1/7/2022
@@ -518,8 +555,14 @@ ggsave(file="output/16S/processed_data/denoising-percent.png", percent, width = 
 ggsave(file="output/16S/processed_data/denoising-reads.png", reads, width = 11, height = 6, units = c("in"))
 ```
 
-add denoising-percent.png
-add denoising-reads.png
+##### Denoising Percentage
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/processed_data/denoising-percent.png)
+
+##### Denoising Reads
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/processed_data/denoising-reads.png)
+
 
 Based on above, I will proceed using the most conservative parameters (highest quality; forward 260; reverse 230).
 
@@ -617,6 +660,15 @@ scp kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/processed_d
 # filtered
 scp kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/processed_data/filtered_taxonomy/taxa-bar-plots-filtered.qzv /Users/kevinwong/MyProjects/Porites_Rim_Bleaching_2019/output/16S/processed_data/
 ```
+
+##### Unfiltered level 5 taxonomy
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/processed_data/tax_lv5_unfiltered.png)
+
+##### Filtered level 5 taxonomy
+
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/processed_data/tax_lv5_filtered.png)
+
 
 #### Phylogenetic trees
 
@@ -723,6 +775,8 @@ qiime diversity beta-group-significance \
     --m-metadata-file $METADATA \
     --o-visualization alpha-rarefaction.qzv
 ```
+
+Export files to local desktop:
 
 ```bash
 scp kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/processed_data/*qza /Users/kevinwong/MyProjects/Porites_Rim_Bleaching_2019/output/16S/processed_data/
