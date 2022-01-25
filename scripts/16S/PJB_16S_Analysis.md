@@ -153,7 +153,7 @@ scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/multiqc_
 
 ##### Sequence Counts
 
-
+![ ](https://github.com/kevinhwong1/Porites_Rim_Bleaching_2019/blob/master/output/16S/fastqc_plots/fastqc_sequence_counts_plot.png)
 
 # Create Metadata files
 
