@@ -1,0 +1,465 @@
+---
+title: "16S_Mothur"
+author: "Kevin Wong"
+date: "09/02/2022"
+output: html_document
+---
+
+Set up workspace, set options, and load required packages. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r, warning=FALSE, message=FALSE}
+## install packages if you dont already have them in your library
+if ("tidyverse" %in% rownames(installed.packages()) == 'FALSE') install.packages('tidyverse') 
+if ("ggplot2" %in% rownames(installed.packages()) == 'FALSE') install.packages('ggplot2') 
+if ("cowplot" %in% rownames(installed.packages()) == 'FALSE') install.packages('cowplot') 
+if ("janitor" %in% rownames(installed.packages()) == 'FALSE') install.packages('janitor') 
+if ("car" %in% rownames(installed.packages()) == 'FALSE') install.packages('car') 
+if ("phyloseq" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install('phyloseq') 
+if ("stringr" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install('stringr')
+if ("ape" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install('ape') 
+if ("DESeq2" %in% rownames(installed.packages()) == 'FALSE') BiocManager::install('DESeq2') 
+if ("microViz" %in% rownames(installed.packages()) == 'FALSE') devtools::install_github("david-barnett/microViz@0.9.0") 
+if ("vegan" %in% rownames(installed.packages()) == 'FALSE') install.packages('vegan') 
+#load packages
+library("ggplot2")
+library('cowplot')
+library("tidyverse")
+library("janitor")
+library("car")
+library("phyloseq")
+library("stringr")
+library("ape")
+library("DESeq2")
+library("microViz")
+library("vegan")
+library(plyr)
+library(dplyr)
+library(stringr)
+library(mixOmics)
+library(factoextra)
+library(broom)
+library(OTUtable)
+```
+
+# Load Data 
+
+Import OTU and taxonomy table. 
+
+```{r}
+otu.full<-read.table("../../output/16S/mothur/PJB.opti_mcc.0.03.subsample.shared", sep='\t', header=TRUE)
+taxonomy.raw<-read.table("../../output/16S/mothur/PJB.taxonomy", sep='\t', header=TRUE)
+
+## used write csv to be able to open this file in excel and edit the columns 
+#write.csv(taxonomy.raw,"../../output/16S/mothur/PJB.taxonomy.csv", row.names = FALSE)
+## Within excel, used text to column function to separate the taxonomy column into 6
+
+taxonomy<-read.csv("../../output/16S/mothur/PJB.taxonomy.csv", sep=',', header=TRUE)
+```
+
+Load sample information.
+```{r}
+metadata.raw <- read.table("../../output/16S/metadata.txt", sep='\t', header=TRUE) %>%
+  dplyr::rename(sample = SampleID) %>%
+  dplyr::rename(Day = Timepoint) %>%
+  unite(GroupTime, Group, Day, remove = FALSE, sep = "-")
+
+metadata <- metadata.raw
+rownames(metadata) <- metadata$sample
+
+metadata <- metadata %>% dplyr::select(!sample)
+```
+
+Set default plot theme.  
+
+```{r}
+theme_set(theme_bw())
+```
+
+# RELATIVE ABUNDANCE 
+
+```{r}
+otu.rel <- otu.full %>% dplyr::select(-label, -numOtus) %>% dplyr::rename(sample = Group)
+rownames(otu.rel) <- otu.rel$sample
+otu.rel <- otu.rel %>% dplyr::select(-sample)
+
+Rel.OTU.Data <- otu.rel/rowSums(otu.rel) # calculate the Relative Abundance
+N <- rowSums(Rel.OTU.Data) # calculate row sums of the relative abundances, should sum to 1
+N #Display Row Sums, should all be 1
+
+# # Transform Relative Abundance Matrix using sqrt ---- see note below on if we need to do something like this 
+# Trans.Rel.Sym.Data <- sqrt(Rel.Sym.Data) #sqrt transform the matrix
+# Trans.Rel.Sym.Data #view data
+```
+
+Do we need to transform this before using? We did for a different project, circle back to this.. 
+```{r}
+
+scaled_pca.rel <-prcomp(Rel.OTU.Data, scale=FALSE, center=TRUE) #is scale false because these are all relative?
+fviz_eig(scaled_pca.rel)
+
+coral_info<-metadata[c(4,5)]
+
+pca_data_rel<- scaled_pca.rel%>%
+ augment(coral_info)%>%
+ dplyr::group_by(Day, Group)%>%
+ dplyr:: mutate(PC1.mean = mean(.fittedPC1),
+         PC2.mean = mean(.fittedPC2))
+
+pca.centroids_rel<- pca_data_rel%>% 
+  dplyr::select(Day, Group, PC1.mean, PC2.mean)%>%
+  dplyr::group_by(Day, Group)%>%
+  dplyr::summarise(PC1.mean = mean(PC1.mean),
+                   PC2.mean = mean(PC2.mean))
+
+pca.centroids_rel$Day <- as.factor(pca.centroids_rel$Day)
+pca.centroids_rel$Group <- as.factor(pca.centroids_rel$Group)
+
+#Examine PERMANOVA results.  
+
+rel.otu.data.all <- merge(coral_info, Rel.OTU.Data, by="row.names", all=TRUE )
+
+# scale data
+#vegan.sig <- scale(master.sig.pca[c(4:13)])
+
+# PerMANOVA 
+permanova.sig<-adonis(Rel.OTU.Data ~ Day*Group, data = rel.otu.data.all, method='eu')
+z_pca.sig<-permanova.sig$aov.tab
+z_pca.sig
+
+#Assemble plot with background points
+
+#1. make plot with dots
+
+#adding percentages on axis
+
+names(pca_data_rel)[4] <- "PCA1"
+names(pca_data_rel)[5] <- "PCA2"
+percentage <- round((scaled_pca.rel$sdev^2) / sum((scaled_pca.rel$sdev^2)) * 100, 2)
+percentage <- paste( colnames(pca_data_rel[4:5]), "(", paste(as.character(percentage), "%", ")", sep="") )
+
+#setting up data to add polygons
+pca_data_rel$Day <- as.factor(pca_data_rel$Day)
+pca_data_rel$Group <- as.factor(pca_data_rel$Group)
+
+pca_data_rel$Day.Group <- paste(pca_data_rel$Day, pca_data_rel$Group)
+find_hull <- function(pca_data_rel) pca_data_rel[chull(pca_data_rel$PCA1, pca_data_rel$PCA2), ]
+hulls <- ddply(pca_data_rel, "Day.Group", find_hull)
+
+
+PCA_rel<-ggplot(pca_data_rel, aes(PCA1, PCA2, color=Group)) + 
+  geom_point(size = 4, alpha=0.2, aes(shape = Day))+
+  scale_colour_manual(values=c("#46008B", "#8B0046", "#468B00")) +
+  scale_fill_manual(values=c("#46008B", "#8B0046", "#468B00")) + 
+  scale_shape_manual(values=c(15, 17, 19)) +
+  theme_classic()+
+  ylim(-.5,.8)+
+  xlim(-.6,.8)+
+  ylab(percentage[2])+
+  xlab(percentage[1])+
+  geom_text(x=.6, y=-.35, label=paste("p(Day)=", z_pca.sig$`Pr(>F)`[1]), size=6, color=ifelse(z_pca.sig$`Pr(>F)`[1] < 0.05, "black", "darkgray")) + 
+  geom_text(x=.6, y=-.425, label=paste("p(Group)=", z_pca.sig$`Pr(>F)`[2]), size=6, color=ifelse(z_pca.sig$`Pr(>F)`[2] < 0.05, "black", "darkgray")) + 
+  geom_text(x=.6, y=-.5, label=paste("p(Day x Group)=", z_pca.sig$`Pr(>F)`[3]), size=6, color=ifelse(z_pca.sig$`Pr(>F)`[3] < 0.05, "black", "darkgray")) + 
+  theme(legend.text = element_text(size=8), 
+        legend.position="none",
+        plot.background = element_blank(),
+        legend.title = element_text(size=10), 
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        axis.text = element_text(size=18), 
+        title = element_text(size=25, face="bold"), 
+        axis.title = element_text(size=18))
+
+#Add centroids  
+
+#2. add centroids 
+PCAcen_rel<-PCA_rel +  geom_polygon(data = hulls, alpha = 0.2, aes(color = Group, fill = Group, lty = Day)) +
+  geom_point(aes(x=PC1.mean, y=PC2.mean,color=Group, shape = Day), data=pca.centroids_rel, size=4, show.legend=FALSE) + 
+  scale_linetype_manual(values = c("solid", "dashed", "dotted")) +
+  scale_colour_manual(values=c("#46008B", "#8B0046", "#468B00"), breaks = c("Control","Bleached", "Mortality"), labels = c("Control", "Bleached", "Partial Mortality")) +
+  scale_fill_manual(values=c("#46008B", "#8B0046", "#468B00"), breaks = c("Control","Bleached", "Mortality"), labels = c("Control", "Bleached", "Partial Mortality")) + 
+  scale_shape_manual(values=c(15, 17, 19)) +
+  theme(legend.text = element_text(size=18), 
+        legend.position=c(0.90,0.85),
+        plot.background = element_blank(),
+        legend.title = element_text(size=20), 
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        axis.text = element_text(size=18), 
+        title = element_text(size=25, face="bold"), 
+        axis.title = element_text(size=18))
+
+#Add segments
+
+#3. add segments
+segpoints<-pca.centroids_rel%>%
+  gather(variable, value, -(Day:Group)) %>%
+  unite(temp, Day, variable) %>%
+  spread(temp, value) 
+  
+names(segpoints)[2] <- "Day0_PC1.mean"
+names(segpoints)[3] <- "Day0_PC2.mean"
+names(segpoints)[4] <- "Day37_PC1.mean"
+names(segpoints)[5] <- "Day37_PC2.mean"
+names(segpoints)[6] <- "Day52_PC1.mean"
+names(segpoints)[7] <- "Day52_PC2.mean"
+
+PCAfull_rel<-PCAcen_rel + 
+  geom_segment(aes(x = Day0_PC1.mean, y = Day0_PC2.mean, xend = Day37_PC1.mean, yend = Day37_PC2.mean, colour = Group), data = segpoints, size=2, show.legend=FALSE) +
+  geom_segment(aes(x = Day37_PC1.mean, y = Day37_PC2.mean, xend = Day52_PC1.mean, yend = Day52_PC2.mean, colour = Group), data = segpoints, size=2, arrow = arrow(length=unit(0.5,"cm")), show.legend=FALSE)
+
+ggsave(filename="../../output/16S/mothur/RelAbu_PCA.jpeg", plot=PCAfull_rel, dpi=300, width=12, height=12, units="in")
+```
+
+# PHYLOSEQ 
+# Tree and heatmap 
+
+Prepare the matrix to be all numeric with taxa in rows.  
+```{r}
+otu.full <- otu.full %>% dplyr::select(-label,-numOtus)
+rownames(otu.full) <- otu.full$Group
+otu.full <- otu.full %>% dplyr::select(-Group)
+otu.full <- t(otu.full)
+```
+
+Prepare the taxonomy table.  
+```{r}
+## taxonomy <- str_split_fixed(taxonomy$Taxonomy, ";", 6)
+## the above function could be used later to split instead of the excel short cut, come back to this 
+
+rownames(taxonomy) <- taxonomy$OTU
+ 
+taxonomy <- taxonomy %>% dplyr::select(-Size, -OTU) %>%
+  dplyr::mutate_all(dplyr::funs(str_replace_all(., "\\([^\\)]+\\)", ""))) %>% # remove the certainty % values in parentheses for each taxa 
+  dplyr::rename(Domain = Taxonomy) %>% dplyr::rename(Phylum = X) %>% dplyr::rename(Class = X.1) %>% dplyr::rename(Order = X.2) %>%
+  dplyr::rename(Family = X.3) %>% dplyr::rename(Genus = X.4)
+
+taxonomy <- as.matrix(taxonomy)
+```
+
+Combine the OTU and taxonomic information. 
+```{r}
+OTU_full = otu_table(otu.full, taxa_are_rows = TRUE)
+TAX = tax_table(taxonomy)
+OTU_full
+```
+
+Load into phyloseq.  
+```{r}
+physeq = phyloseq(OTU_full, TAX)
+physeq
+```
+
+Plot an abundance table at the different taxonomic levels.    
+
+```{r}
+plot_bar(physeq, fill = "Domain") + theme(legend.position="bottom")
+plot_bar(physeq, fill = "Phylum") + theme(legend.position="bottom")
+plot_bar(physeq, fill = "Class") + theme(legend.position="bottom")
+plot_bar(physeq, fill = "Order") + theme(legend.position="bottom")
+plot_bar(physeq, fill = "Family") + theme(legend.position="bottom")
+plot_bar(physeq, fill = "Genus") + theme(legend.position="bottom")
+```
+
+Plot a tree of OTU's.  
+```{r}
+random_tree = rtree(ntaxa(physeq), rooted=TRUE, tip.label=taxa_names(physeq))
+plot(random_tree)
+```
+
+Generate sample information.  
+```{r}
+sampledata = sample_data(data.frame(
+  Day = metadata$Day,
+  Group = metadata$Group, 
+  Colony_ID = metadata$Colony_ID,
+  GroupTime = metadata$GroupTime,
+  row.names=sample_names(physeq),
+  stringsAsFactors=FALSE
+))
+sampledata
+```
+
+Merge the tree, sample information, and OTU table.  
+```{r}
+physeq1 = merge_phyloseq(physeq, sampledata, random_tree)
+physeq1
+```
+
+Now rebuild phyloseq.  
+```{r}
+physeq2 = phyloseq(OTU_full, TAX, sampledata, random_tree)
+physeq2
+```
+
+Check that they are identical. Should return TRUE.  
+```{r}
+identical(physeq1, physeq2)
+```
+
+## Filter out samples here if needed
+
+Plot abundance by category. 
+
+```{r}
+plot_bar(physeq, fill = "Class") + theme(legend.position="bottom")
+plot_bar(physeq1, fill="Class", facet_grid=~GroupTime) + theme(legend.position="bottom")
+```
+
+Now build a tree with the combined data.  
+```{r}
+plot_tree(physeq1, color="Day", label.tips="taxa_names", ladderize="left", plot.margin=0.3)
+plot_tree(physeq1, color="Group", label.tips="taxa_names", ladderize="left", plot.margin=0.3)
+plot_tree(physeq1, color="GroupTime", label.tips="taxa_names", ladderize="left", plot.margin=0.3)
+```
+
+Plot a heatmap.  
+
+```{r}
+plot_heatmap(physeq1, "NMDS", "bray", "Day", "Family", low="#66CCFF", high="#000033", na.value="white")
+plot_heatmap(physeq1, "NMDS", "bray", "Group", "Family", low="#66CCFF", high="#000033", na.value="white")
+plot_heatmap(physeq1, "NMDS", "bray", "GroupTime", "Family", low="#66CCFF", high="#000033", na.value="white")
+
+```
+
+# NMDS 
+
+```{r}
+GP1 = physeq1
+GP1
+```
+
+Transform to even sampling depth.  
+```{r}
+GP1 = transform_sample_counts(GP1, function(x) 1E6 * x/sum(x))
+```
+
+View ordination by OTU.  
+```{r}
+GP.ord <- ordinate(GP1, "NMDS", "bray")
+p1 = plot_ordination(GP1, GP.ord, type="taxa", color="Class", title="taxa")
+```
+
+View faceted by Phylum.  
+```{r}
+p1 + facet_wrap(~Class, 3) + theme(legend.position="none")
+```
+
+Plot with samples now.  
+```{r}
+p2 = plot_ordination(GP1, GP.ord, type="samples", color="Group", shape="Day") + geom_point(size=3) + 
+  ggtitle("16S communities") + stat_ellipse() + 
+  scale_color_manual(values = c("green3", "darkgreen", "lightblue", "darkblue")) 
+#+ geom_polygon(aes(fill=timepoint))
+```
+
+Plot OTU and sample plots together.  
+```{r}
+p3 = plot_ordination(GP1, GP.ord, type="split", color="Phylum", label="timepoint", title="split") 
+p3
+```
+
+Now view through different ordination methods. 
+
+```{r}
+dist = "bray"
+ord_meths = c("DCA", "CCA", "RDA", "DPCoA", "NMDS", "MDS", "PCoA")
+plist = plyr::llply(as.list(ord_meths), function(i, physeq, dist){
+        ordi = ordinate(physeq, method=i, distance=dist)
+        plot_ordination(physeq, ordi, "samples", color="GroupTime")
+}, GP1, dist)
+names(plist) <- ord_meths
+pdataframe = plyr::ldply(plist, function(x){
+    df = x$data[, 1:2]
+    colnames(df) = c("Axis_1", "Axis_2")
+    return(cbind(df, x$data))
+})
+names(pdataframe)[1] = "method"
+p = ggplot(pdataframe, aes(Axis_1, Axis_2, color=GroupTime, fill=GroupTime))
+p = p + geom_point(size=4) + geom_polygon()
+p = p + facet_wrap(~method, scales="free")
+#p = p + scale_fill_brewer(type="qual", palette="Set1")
+#p = p + scale_colour_brewer(type="qual", palette="Set1")
+p
+```
+
+Display NMDS, the method we will be using.  
+```{r}
+p = plist[[5]] 
+p = p + geom_point(size=2) + stat_ellipse() 
+p
+```
+
+Conduct a permanova in the vegan package.  
+
+```{r}
+metadata <- as(sample_data(GP1), "data.frame")
+adonis(phyloseq::distance(GP1, method="bray") ~ Day*Group,
+       data = metadata)
+```
+
+# Networks  
+
+Remove NA's. 
+```{r}
+GP3f = physeq1
+```
+
+Plot network.  
+```{r}
+plot_net(GP3f, maxdist = 1, color = "GroupTime") + 
+  #scale_color_manual(values = c("green3", "darkgreen", "lightblue", "darkblue")) + 
+  ggtitle("16S community network plot based on the default distance method, “Jaccard”")
+```
+
+Plot network.  
+```{r}
+igF <- make_network(GP3f, max.dist=1)
+plot_network(igF, GP3f, color="GroupTime", label=NULL)
+```
+
+# DESeq2
+
+Convert phyloseq object to DESeq2 object.  
+
+Construct DESeq2 object looking at differences by lifestage.  
+```{r}
+diagdds_full = phyloseq_to_deseq2(physeq1, ~ GroupTime)
+gm_mean = function(x, na.rm=TRUE){
+  exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
+}
+geoMeans = apply(counts(diagdds_full), 1, gm_mean)
+diagdds_full = estimateSizeFactors(diagdds_full, geoMeans = geoMeans)
+#diagdds_full = DESeq(diagdds_full, fitType="local")
+diagdds_full = DESeq(diagdds_full, test="Wald", fitType="parametric")
+```
+
+Look at results table.  
+```{r}
+res_full = results(diagdds_full, cooksCutoff = FALSE)
+alpha = 1
+sigtab = res_full[which(res_full$padj < alpha), ]
+sigtab = cbind(as(sigtab, "data.frame"), as(tax_table(physeq1)[rownames(sigtab), ], "matrix"))
+head(sigtab)
+```
+
+Plot
+```{r}
+theme_set(theme_bw())
+
+scale_fill_discrete <- function(palname = "Set1", ...) {
+    scale_fill_brewer(palette = palname, ...)
+}
+# Phylum order
+x = tapply(sigtab$log2FoldChange, sigtab$Phylum, function(x) max(x))
+x = sort(x, TRUE)
+sigtab$Phylum = factor(as.character(sigtab$Phylum), levels=names(x))
+# Genus order
+x = tapply(sigtab$log2FoldChange, sigtab$Genus, function(x) max(x))
+x = sort(x, TRUE)
+sigtab$Genus = factor(as.character(sigtab$Genus), levels=names(x))
+ggplot(sigtab, aes(x=Genus, y=log2FoldChange, color=Phylum)) + geom_point(size=2) + 
+  theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust=0.5))
+```
+
