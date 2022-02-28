@@ -771,7 +771,7 @@ qiime diversity beta-group-significance \
   qiime diversity alpha-rarefaction \
     --i-table filtered_taxonomy/table-filtered_260230.qza \
     --i-phylogeny rooted-tree.qza \
-    --p-max-depth 800 \
+    --p-max-depth 4000 \
     --m-metadata-file $METADATA \
     --o-visualization alpha-rarefaction.qzv
 ```
@@ -785,3 +785,32 @@ scp kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/processed_d
 
 scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/processed_data/core-metrics-results /Users/kevinwong/MyProjects/Porites_Rim_Bleaching_2019/output/16S/processed_data/
 ```
+
+## converting qza files to tsv
+
+```
+mkdir downstream_analysis
+
+cp /data/putnamlab/kevin_wong1/PJB_16S/processed_data/taxonomy_260230.qza .
+cp /data/putnamlab/kevin_wong1/PJB_16S/processed_data/rooted-tree.qza  .
+cp /data/putnamlab/kevin_wong1/PJB_16S/processed_data/denoise_260230/table_260230.qza  .
+
+interactive
+
+module load QIIME2/2021.8
+for i in *.qza; do
+qiime tools export --input-path $i --output-path .
+done
+biom convert -i feature-table.biom -o feature-table.tsv --to-tsv
+
+exit
+```
+
+On local computer:
+```
+scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/processed_data/downstream_analysis/taxonomy.tsv /Users/kevinwong/MyProjects/Porites_Rim_Bleaching_2019/output/16S/processed_data/
+
+scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/processed_data/downstream_analysis/tree.nwk /Users/kevinwong/MyProjects/Porites_Rim_Bleaching_2019/output/16S/processed_data/
+
+scp -r kevin_wong1@ssh3.hac.uri.edu:/data/putnamlab/kevin_wong1/PJB_16S/processed_data/downstream_analysis/feature-table.tsv /Users/kevinwong/MyProjects/Porites_Rim_Bleaching_2019/output/16S/processed_data/
+``

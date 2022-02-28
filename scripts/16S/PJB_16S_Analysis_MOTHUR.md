@@ -51,7 +51,7 @@ mothur
 
 mothur "#make.file(inputdir=., type=gz, prefix=PJB)"
 
-mothur "#make.contigs(inputdir=., outputdir=., file=PJB.files, oligos=oligos.oligos)"
+mothur "#make.contigs(inputdir=., outputdir=., file=PJB.files, oligos=oligos.oligos, trimoverlap=T)"
 
 mothur "#summary.seqs(fasta=PJB.trim.contigs.fasta)"
 ```
@@ -59,16 +59,16 @@ mothur "#summary.seqs(fasta=PJB.trim.contigs.fasta)"
 Summary output: `less contigs_output_script`
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        1       22      22      0       2       1
-2.5%-tile:      1       292     292     0       4       31747
-25%-tile:       1       292     292     0       4       317470
-Median:         1       293     293     0       4       634939
-75%-tile:       1       301     301     0       5       952408
-97.5%-tile:     1       310     310     6       6       1238130
-Maximum:        1       563     563     114     270     1269876
-Mean:   1       297     297     0       4
-# of Seqs:      1269876
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       1       1       0       1       1
+2.5%-tile:      1       252     252     0       3       31747
+25%-tile:       1       253     253     0       4       317468
+Median:         1       253     253     0       4       634936
+75%-tile:       1       253     253     0       5       952404
+97.5%-tile:     1       254     254     6       6       1238125
+Maximum:        1       280     280     114     30      1269871
+Mean:           1       252     252     0       4
+# of Seqs:      1269871
 ```
 
 Check that primers are gone:
@@ -77,18 +77,6 @@ Check that primers are gone:
 
 `head PJB.trim.contigs.fasta`
 
-```
->M00763_26_000000000-K4TML_1_1101_13046_1536	ee=1.77103	fbdiffs=0(match), rbdiffs=0(match) fpdiffs=0(match), rpdiffs=0(match)
-GGATAGGTGCCAGCAGCCGCGGTAATACGGAGGATGCAAGCGTTATCCGGAATTATTGGGCGTAAAGGGTTTGTAGGCTACTTTTTAAGTCTGCTGTTAAAGAATAAGACTTAACCTTAGAAAAGCAGTATGAAACTAAAAGGATAGAGTTCAGTAGGGGTAGAGGGAATTCTCGGTGTAGTAGTGAAATGCGTAGATATCGAGAGGAACACCAATAGCGAAAGCACTCTACTAGGCTGTAACTGACGCTAAGAAACGAAAGCTAGGGGAGCCAATGGGATTAGATACCCCGGTAGTCC
->M00763_26_000000000-K4TML_1_1101_11503_1634	ee=2.58733	fbdiffs=0(match), rbdiffs=0(match) fpdiffs=0(match), rpdiffs=0(match)
-TGACAGGTGCCAGCCGCCGCGGGAATACGGAGGATGCAAGCGTTATCCGGAATTATTGGGCGTAAAGGGTTTGTAGGCTACTTTTTAAGTCTGCTGTTAAAGAATAAGACTTAACCTTAGAAAAGCAGTATGAAACTAAAAGGATAGAGTTCAGTAGGGGTAGAGGGAATTCTCGGTGTAGTAGTGAAATGCGTAGATATCGAGAGGAACACCAATAGCGAAAGCACTCTACTAGGCTGTAACTGACGCTAAGAAACGAAAGCTAGGGGAGCCAATGGGATTAGCTACCCGTGTAGTCC
->M00763_26_000000000-K4TML_1_1101_17805_1647	ee=1.04918	fbdiffs=0(match), rbdiffs=0(match) fpdiffs=0(match), rpdiffs=0(match)
-GTGCCAGCAGCCGCGGTAAGACGGAGGATGCAAGTGTTATCCGGAATCACTGGGCGTAAAGCGTCTGTAGGTGGTTTAATAAGTCAACTGTTAAATCTTAAGGCTCAACCTTAAAATCGCAGTCGAAACTATTAAACTAGAGTATAGTAGAGGTAAAGGGAATTTCCAGTGGAGCGGTGAAATGCGTAGAGATTGGAAAGAACACCGATGGCGAAGGCACTTTACTGGGCTATTACTAACACTCAGAGACGAAAGCTAGGGTAGCAAATGGGATTAGATACCCTAGTAGTCC
->M00763_26_000000000-K4TML_1_1101_11512_1651	ee=2.09099	fbdiffs=0(match), rbdiffs=0(match) fpdiffs=0(match), rpdiffs=0(match)
-GGGACCGTGGCCAGCCGCCGCGGTAATACGGAGGATGCAAGCGTTATCCGGAATTATTGGGCGTAAAGGGTTTGTAGGCTACTTTTTAAGTCTGCTGTTAAAGAATAAGACTTAACCTTAGAAAAGCAGTATGAAACTAAAAGGATAGAGTTCAGTAGGGGTAGAGGGAATTCTCGGTGTAGTAGTGAAATGCGTAGATATCGAGAGGAACACCAATAGCGAAAGCACTCTACTAGGCTGTAACTGACGCTAAGAAACGAAAGCTAGGGGAGCCAATGGGATTAGCTACCCGTGTAGTCC
->M00763_26_000000000-K4TML_1_1101_21801_1736	ee=2.29141	fbdiffs=0(match), rbdiffs=0(match) fpdiffs=0(match), rpdiffs=0(match)
-TGGACAGGTGCCAGCCGCCGCGTGAAGACGGAGGATGCTAGTGTTATCCGGAATCACTGGGCGTAAAGCGTCTGTAGNTGGTTAAATAAGTCAACTGTTAAATCTTGAAGCTCAACTTCAAAATCGCAATCGAAACTATTTGACTTGAGTATAGTAGAGGTAACGGGAATTTCCAGTGGAGTGGTGAAATGCGTAGAGATTGGAAAGAACACCGATGGCGAAGGCACTTTACTGGGCTATTACTAACACTCAGAGACGAAAGCTAGGGTAGCAAATGGGATTAGATAACCCGGTAGTCC
-```
 
 4. QC’ing sequences with screen.seqs
 
@@ -121,16 +109,16 @@ mothur "#summary.seqs(fasta=PJB.trim.contigs.good.fasta)"
 The summary output as viewed in the screen_output_script file now reads:
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        1       252     252     0       3       1
-2.5%-tile:      1       292     292     0       4       24702
-25%-tile:       1       292     292     0       4       247017
-Median:         1       293     293     0       4       494033
-75%-tile:       1       301     301     0       5       741049
-97.5%-tile:     1       310     310     0       6       963364
-Maximum:        1       350     350     0       27      988065
-Mean:   1       295     295     0       4
-# of Seqs:      988065
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       250     250     0       3       1
+2.5%-tile:      1       253     253     0       3       24682
+25%-tile:       1       253     253     0       4       246819
+Median:         1       253     253     0       4       493638
+75%-tile:       1       253     253     0       5       740457
+97.5%-tile:     1       254     254     0       6       962594
+Maximum:        1       280     280     0       12      987275
+Mean:           1       253     253     0       4
+# of Seqs:      987275
 ```
 
 5. Determining and counting unique sequences
@@ -167,17 +155,17 @@ mothur "#count.groups(count= PJB.trim.contigs.good.unique.fasta)"
 `less unique_output_script`
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        1       252     252     0       3       1
-2.5%-tile:      1       292     292     0       4       24702
-25%-tile:       1       292     292     0       4       247017
-Median:         1       293     293     0       4       494033
-75%-tile:       1       301     301     0       5       741049
-97.5%-tile:     1       310     310     0       6       963364
-Maximum:        1       350     350     0       27      988065
-Mean:   1       295     295     0       4
-# of unique seqs:       579759
-total # of seqs:        988065
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       250     250     0       3       1
+2.5%-tile:      1       253     253     0       3       24682
+25%-tile:       1       253     253     0       4       246819
+Median:         1       253     253     0       4       493638
+75%-tile:       1       253     253     0       5       740457
+97.5%-tile:     1       254     254     0       6       962594
+Maximum:        1       280     280     0       12      987275
+Mean:           1       253     253     0       4
+# of unique seqs:       72883
+total # of seqs:        987275
 ```
 
 Warning message:
@@ -286,16 +274,16 @@ Summary output:
 `less align_output_script`
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        0       0       0       0       1       1
-2.5%-tile:      1       13424   292     0       4       14494
-25%-tile:       1       13424   292     0       4       144940
-Median:         1       13424   292     0       4       289880
-75%-tile:       1       13424   293     0       5       434820
-97.5%-tile:     1       13425   294     0       6       565266
-Maximum:        13424   13425   302     0       19      579759
-Mean:   5       13419   292     0       4
-# of Seqs:      579759
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       1231    3       0       1       1
+2.5%-tile:      1968    11550   252     0       3       1823
+25%-tile:       1968    11550   253     0       4       18221
+Median:         1968    11550   253     0       4       36442
+75%-tile:       1968    11550   253     0       5       54663
+97.5%-tile:     1968    11550   254     0       6       71061
+Maximum:        13422   13425   275     0       12      72883
+Mean:           1973    11549   252     0       4
+# of Seqs:      72883
 ```
 
 ### QC sequences according to alignment to the reference
@@ -333,70 +321,70 @@ Summary output:
 `less screen2_output_script`
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        1       11550   269     0       3       1
-2.5%-tile:      1       13424   292     0       4       24681
-25%-tile:       1       13424   292     0       4       246801
-Median:         1       13424   292     0       4       493602
-75%-tile:       1       13424   293     0       5       740403
-97.5%-tile:     1       13425   293     0       6       962523
-Maximum:        1968    13425   300     0       8       987203
-Mean:   1       13424   292     0       4
-# of unique seqs:       579013
-total # of seqs:        987203
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       11550   250     0       3       1
+2.5%-tile:      1968    11550   253     0       3       24609
+25%-tile:       1968    11550   253     0       4       246085
+Median:         1968    11550   253     0       4       492170
+75%-tile:       1968    11550   253     0       5       738255
+97.5%-tile:     1968    11550   254     0       6       959731
+Maximum:        1968    13425   275     0       8       984339
+Mean:           1967    11550   253     0       4
+# of unique seqs:       72472
+total # of seqs:        984339
 ```
 
 ```
 mothur > count.groups(count=PJB.trim.contigs.good.good.count_table)
-WSH129 contains 61316.
-WSH130 contains 32627.
-WSH131 contains 7086.
-WSH132 contains 83611.
-WSH133 contains 14747.
+WSH129 contains 61252.
+WSH130 contains 32582.
+WSH131 contains 7084.
+WSH132 contains 83387.
+WSH133 contains 14744.
 WSH134 contains 11080.
-WSH135 contains 25086.
-WSH136 contains 12607.
-WSH137 contains 8889.
-WSH138 contains 68185.
-WSH139 contains 16473.
-WSH140 contains 29570.
-WSH141 contains 16859.
-WSH142 contains 18954.
-WSH143 contains 25182.
-WSH144 contains 20997.
-WSH145 contains 25124.
-WSH146 contains 19133.
-WSH147 contains 17608.
-WSH148 contains 16778.
-WSH149 contains 19309.
-WSH150 contains 12999.
-WSH151 contains 19308.
-WSH152 contains 13562.
-WSH153 contains 12015.
+WSH135 contains 25048.
+WSH136 contains 12600.
+WSH137 contains 8890.
+WSH138 contains 66867.
+WSH139 contains 16472.
+WSH140 contains 29521.
+WSH141 contains 16537.
+WSH142 contains 18938.
+WSH143 contains 24958.
+WSH144 contains 20990.
+WSH145 contains 25098.
+WSH146 contains 19106.
+WSH147 contains 17605.
+WSH148 contains 16765.
+WSH149 contains 19290.
+WSH150 contains 12994.
+WSH151 contains 19274.
+WSH152 contains 13537.
+WSH153 contains 11916.
 WSH154 contains 1731.
-WSH155 contains 7269.
-WSH156 contains 14588.
-WSH157 contains 21940.
-WSH158 contains 16712.
-WSH159 contains 13891.
-WSH160 contains 22959.
-WSH161 contains 31522.
-WSH162 contains 37154.
-WSH163 contains 16460.
-WSH164 contains 21284.
-WSH165 contains 14706.
+WSH155 contains 7268.
+WSH156 contains 14572.
+WSH157 contains 21936.
+WSH158 contains 16699.
+WSH159 contains 13874.
+WSH160 contains 22918.
+WSH161 contains 31488.
+WSH162 contains 37097.
+WSH163 contains 16455.
+WSH164 contains 21257.
+WSH165 contains 14702.
 WSH166 contains 12564.
-WSH167 contains 11062.
-WSH168 contains 7839.
-WSH169 contains 10634.
-WSH170 contains 33551.
-WSH171 contains 35930.
-WSH172 contains 34627.
-WSH173 contains 11675.
+WSH167 contains 11057.
+WSH168 contains 7832.
+WSH169 contains 10627.
+WSH170 contains 33534.
+WSH171 contains 35915.
+WSH172 contains 34605.
+WSH173 contains 11673.
 
 Size of smallest group: 1731.
 
-Total seqs: 987203.
+Total seqs: 984339.
 
 Output File Names:
 PJB.trim.contigs.good.good.count.summary
@@ -438,17 +426,17 @@ Summary output:
 `less filter_output_script`
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        1       546     230     0       3       1
-2.5%-tile:      1       547     253     0       3       24681
-25%-tile:       1       547     253     0       4       246801
-Median:         1       547     253     0       4       493602
-75%-tile:       1       547     253     0       5       740403
-97.5%-tile:     1       547     254     0       6       962523
-Maximum:        4       547     271     0       8       987203
-Mean:   1       546     253     0       4
-# of unique seqs:       579013
-total # of seqs:        987203
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       530     250     0       3       1
+2.5%-tile:      1       531     253     0       3       24609
+25%-tile:       1       531     253     0       4       246085
+Median:         1       531     253     0       4       492170
+75%-tile:       1       531     253     0       5       738255
+97.5%-tile:     1       531     254     0       6       959731
+Maximum:        1       531     271     0       8       984339
+Mean:           1       530     253     0       4
+# of unique seqs:       72472
+total # of seqs:        984339
 ```
 
 7. Polish the data with pre clustering
@@ -487,17 +475,17 @@ Summary output:
 `less precluster_output_script`
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        1       546     230     0       3       1
-2.5%-tile:      1       547     253     0       3       24681
-25%-tile:       1       547     253     0       4       246801
-Median:         1       547     253     0       4       493602
-75%-tile:       1       547     253     0       5       740403
-97.5%-tile:     1       547     254     0       6       962523
-Maximum:        4       547     271     0       8       987203
-Mean:   1       546     253     0       4
-# of unique seqs:       45194
-total # of seqs:        987203
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       530     250     0       3       1
+2.5%-tile:      1       531     253     0       3       24609
+25%-tile:       1       531     253     0       4       246085
+Median:         1       531     253     0       4       492170
+75%-tile:       1       531     253     0       5       738255
+97.5%-tile:     1       531     254     0       6       959731
+Maximum:        1       531     271     0       8       984339
+Mean:           1       530     253     0       4
+# of unique seqs:       43840
+total # of seqs:        984339
 ```
 
 Error message:
@@ -548,62 +536,77 @@ Summary output:
 `less chimera_output_script`
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        1       546     230     0       3       1
-2.5%-tile:      1       547     253     0       3       24025
-25%-tile:       1       547     253     0       4       240245
-Median:         1       547     253     0       4       480489
-75%-tile:       1       547     253     0       5       720733
-97.5%-tile:     1       547     254     0       6       936953
-Maximum:        4       547     271     0       8       960977
-Mean:   1       546     253     0       4
-# of unique seqs:       34016
-total # of seqs:        960977
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       530     250     0       3       1
+2.5%-tile:      1       531     253     0       3       23951
+25%-tile:       1       531     253     0       4       239501
+Median:         1       531     253     0       4       479002
+75%-tile:       1       531     253     0       5       718503
+97.5%-tile:     1       531     254     0       6       934053
+Maximum:        1       531     271     0       8       958003
+Mean:           1       530     253     0       4
+# of unique seqs:       32766
+total # of seqs:        958003
+
+
 ```
 
 The count of sequences in each file are:
 
 ```
-WSH136 contains 12335.
-WSH137 contains 8858.
-WSH138 contains 66295.
-WSH139 contains 16281.
-WSH140 contains 28837.
-WSH141 contains 16184.
-WSH142 contains 18058.
-WSH143 contains 24014.
-WSH144 contains 20191.
-WSH145 contains 24021.
-WSH146 contains 18695.
-WSH147 contains 17150.
-WSH148 contains 16534.
-WSH149 contains 18714.
-WSH150 contains 12731.
-WSH151 contains 18946.
-WSH152 contains 13264.
-WSH153 contains 11885.
+mothur > count.groups(count=PJB.trim.contigs.good.unique.good.filter.unique.precluster.denovo.vsearch.pick.count_table)
+WSH129 contains 58649.
+WSH130 contains 31860.
+WSH131 contains 6993.
+WSH132 contains 80691.
+WSH133 contains 14536.
+WSH134 contains 10956.
+WSH135 contains 24421.
+WSH136 contains 12329.
+WSH137 contains 8860.
+WSH138 contains 64973.
+WSH139 contains 16282.
+WSH140 contains 28786.
+WSH141 contains 15863.
+WSH142 contains 18045.
+WSH143 contains 23782.
+WSH144 contains 20178.
+WSH145 contains 23974.
+WSH146 contains 18672.
+WSH147 contains 17154.
+WSH148 contains 16521.
+WSH149 contains 18696.
+WSH150 contains 12725.
+WSH151 contains 18917.
+WSH152 contains 13242.
+WSH153 contains 11786.
 WSH154 contains 1728.
-WSH155 contains 7223.
-WSH156 contains 14442.
-WSH157 contains 21383.
-WSH158 contains 16393.
-WSH159 contains 13701.
-WSH160 contains 21881.
-WSH161 contains 30710.
-WSH162 contains 35950.
-WSH163 contains 16051.
-WSH164 contains 20936.
-WSH165 contains 14481.
-WSH166 contains 12496.
-WSH167 contains 10965.
-WSH168 contains 7668.
-WSH169 contains 10542.
-WSH170 contains 32868.
-WSH171 contains 35009.
-WSH172 contains 33486.
-WSH173 contains 11497.
+WSH155 contains 7222.
+WSH156 contains 14427.
+WSH157 contains 21381.
+WSH158 contains 16373.
+WSH159 contains 13681.
+WSH160 contains 21838.
+WSH161 contains 30675.
+WSH162 contains 35901.
+WSH163 contains 16045.
+WSH164 contains 20905.
+WSH165 contains 14476.
+WSH166 contains 12494.
+WSH167 contains 10959.
+WSH168 contains 7666.
+WSH169 contains 10540.
+WSH170 contains 32851.
+WSH171 contains 35000.
+WSH172 contains 33455.
+WSH173 contains 11495.
 
 Size of smallest group: 1728.
+
+Total seqs: 958003.
+
+Output File Names:
+PJB.trim.contigs.good.unique.good.filter.unique.precluster.denovo.vsearch.pick.count.summary
 ```
 
 
@@ -640,18 +643,17 @@ Summary output:
 `less classify_output_script`
 
 ```
-Start   End     NBases  Ambigs  Polymer NumSeqs
-Minimum:        1       546     230     0       3       1
-2.5%-tile:      1       547     253     0       3       22686
-25%-tile:       1       547     253     0       4       226854
-Median:         1       547     253     0       4       453708
-75%-tile:       1       547     253     0       5       680562
-97.5%-tile:     1       547     254     0       6       884730
-Maximum:        4       547     271     0       8       907415
-Mean:   1       546     253     0       4
-# of unique seqs:       32032
-total # of seqs:        907415
-
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       530     250     0       3       1
+2.5%-tile:      1       531     253     0       3       22628
+25%-tile:       1       531     253     0       4       226280
+Median:         1       531     253     0       4       452559
+75%-tile:       1       531     253     0       5       678838
+97.5%-tile:     1       531     254     0       6       882489
+Maximum:        1       531     271     0       8       905116
+Mean:           1       530     253     0       4
+# of unique seqs:       30986
+total # of seqs:        905116
 ```
 
 10. Cluster for OTUs
@@ -696,55 +698,56 @@ The count of sequences in each file are:
 `less cluster_output_script`
 
 ```
-WSH129 contains 57170.
-WSH130 contains 30695.
-WSH131 contains 6976.
-WSH132 contains 74729.
-WSH133 contains 14423.
+mothur > count.groups(shared=PJB.opti_mcc.shared)
+WSH129 contains 57046.
+WSH130 contains 30636.
+WSH131 contains 6973.
+WSH132 contains 74507.
+WSH133 contains 14419.
 WSH134 contains 10908.
-WSH135 contains 20916.
-WSH136 contains 11099.
-WSH137 contains 8787.
-WSH138 contains 59116.
-WSH139 contains 15635.
-WSH140 contains 27905.
-WSH141 contains 15699.
-WSH142 contains 17488.
-WSH143 contains 23388.
-WSH144 contains 20055.
-WSH145 contains 21605.
-WSH146 contains 15075.
-WSH147 contains 17100.
-WSH148 contains 13768.
-WSH149 contains 17393.
-WSH150 contains 12323.
-WSH151 contains 14537.
-WSH152 contains 12753.
-WSH153 contains 11733.
+WSH135 contains 20866.
+WSH136 contains 11094.
+WSH137 contains 8789.
+WSH138 contains 58396.
+WSH139 contains 15638.
+WSH140 contains 27886.
+WSH141 contains 15379.
+WSH142 contains 17475.
+WSH143 contains 23156.
+WSH144 contains 20043.
+WSH145 contains 21560.
+WSH146 contains 15054.
+WSH147 contains 17104.
+WSH148 contains 13757.
+WSH149 contains 17375.
+WSH150 contains 12317.
+WSH151 contains 14510.
+WSH152 contains 12731.
+WSH153 contains 11634.
 WSH154 contains 1691.
-WSH155 contains 7214.
-WSH156 contains 13286.
-WSH157 contains 21283.
-WSH158 contains 16375.
-WSH159 contains 13530.
-WSH160 contains 20767.
-WSH161 contains 28585.
-WSH162 contains 33915.
-WSH163 contains 15618.
-WSH164 contains 19150.
-WSH165 contains 14346.
-WSH166 contains 12463.
-WSH167 contains 10952.
-WSH168 contains 7394.
-WSH169 contains 10086.
-WSH170 contains 32485.
-WSH171 contains 32399.
-WSH172 contains 33256.
-WSH173 contains 11344.
+WSH155 contains 7213.
+WSH156 contains 13272.
+WSH157 contains 21281.
+WSH158 contains 16355.
+WSH159 contains 13519.
+WSH160 contains 20729.
+WSH161 contains 28550.
+WSH162 contains 33867.
+WSH163 contains 15613.
+WSH164 contains 19120.
+WSH165 contains 14342.
+WSH166 contains 12461.
+WSH167 contains 10946.
+WSH168 contains 7393.
+WSH169 contains 10084.
+WSH170 contains 32468.
+WSH171 contains 32391.
+WSH172 contains 33225.
+WSH173 contains 11343.
 
 Size of smallest group: 1691.
 
-Total seqs: 907415.
+Total seqs: 905116.
 
 Output File Names:
 PJB.opti_mcc.count.summary
@@ -770,7 +773,7 @@ summary.single(shared=PJB.opti_mcc.shared, calc=nseqs-sobs-shannon-invsimpson, s
 
 13. Population Level Analyses
 
-14. Export foor R analyses
+14. Export for R analyses
 
 Files needed to export from andromeda to desktop for R analysis:
 

@@ -442,8 +442,11 @@ sample_metadata$Day <- as.factor(sample_metadata$Day)
 mME_meta <- merge(mME, sample_metadata, by = "Sample.ID") %>%
   rename(Module = name)
 
+mME_meta$Module <- factor(mME_meta$Module, levels = c("brown", "grey", "yellow", "blue", "turquoise"))
 
+module_order <- c("brown", "grey", "yellow", "blue", "turquoise")
 
+mME_meta2 <- mME_meta %>% arrange(match(Module, module_order))
 
 expression_plots<-mME_meta%>%
 #  group_by(Module) %>%

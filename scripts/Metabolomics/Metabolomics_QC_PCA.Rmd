@@ -54,7 +54,7 @@ library(MetaboAnalystR)
 
 #Import data
 
-sample.info <- read.csv("../../data/Metabolomics/Porites-Kevin_SampleInfo.csv")
+sample.info <- read.csv("../../data/Metabolomics/Porites-Kevin_SampleInfo2.csv")
 peak.pos <- read.csv("../../data/Metabolomics/Peaks_Pos.csv")
 peak.neg <- read.csv("../../data/Metabolomics/Peaks_Neg.csv")
 peak.unknown <- read.csv("../../data/Metabolomics/Peaks_Unknown.csv")
@@ -177,7 +177,7 @@ peak.all2$Raw.IonCount <- as.numeric(as.character(peak.all2$Raw.IonCount))
 peak.all2$Norm.IonCount <- peak.all2$Raw.IonCount / peak.all2$Weight.mg
 
 #Selecting columns of interest
-peak.all3 <- peak.all2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Time, Treatment, Norm.IonCount)
+peak.all3 <- peak.all2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Day, Norm.IonCount)
 
 #Reformatting dataframe so compounds are listed as column headers
 peak.all4 <- peak.all3 %>% spread(compound, Norm.IonCount)
@@ -193,6 +193,15 @@ names(norm.data.all)[3] <- "Day"
 names(norm.data.all)[4] <- "Group"
 
 write.csv(norm.data.all, "../../output/Metabolomics/Norm_Data_All.csv")
+
+
+### Making a dataset for omic integration (Diablo)
+norm.data.all$ColDay <- paste(norm.data.all$Fragment.ID, norm.data.all$Day, sep = "-")
+rownames(norm.data.all) <- paste0(norm.data.all$ColDay)
+metab.df <- norm.data.all %>% dplyr::select(-Sample.ID, -Fragment.ID, -Time, -Day, -ColDay)
+
+write.csv(metab.df, "../../output/Metabolomics/metab_df.csv")
+
 
 ##### KNOWN METABOLITES #####
 

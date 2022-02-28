@@ -260,6 +260,8 @@ plot_bar(physeq, fill = "Class") + theme(legend.position="bottom")
 plot_bar(physeq, fill = "Order") + theme(legend.position="bottom")
 plot_bar(physeq, fill = "Family") + theme(legend.position="bottom")
 plot_bar(physeq, fill = "Genus") + theme(legend.position="bottom")
+
+plot_bar(physeq, fill="Phylum", facet_grid=~Phylum)
 ```
 
 Plot a tree of OTU's.  
