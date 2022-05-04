@@ -47,20 +47,40 @@ library("grDevices")
 
 ```{r Input, echo=TRUE, warning=FALSE, message=FALSE}
 
-treatmentinfo <- read.csv("../data/Molecular/Sample_Info.csv", header = TRUE, sep = ",")
-head(treatmentinfo)
-treatmentinfo$Day <- as.factor(treatmentinfo$Day)
+metadata <- read.csv("../../data/Molecular/Tag-Seq/Sample_Info_hisat2.csv", header = TRUE, sep = ",", stringsAsFactors = TRUE)
+head(metadata)
 
-gcount <- read.table("../output/TagSeq/full_count_matrix.txt", header = TRUE, row.names="Name")
+gcount <- as.data.frame(read.csv("../../output/TagSeq/PJB_gene_count_matrix.csv", row.names="gene_id"), colClasses = double)
+
 #head(gcount)
 dim(gcount)
 ```
 
-## Quality-filter gene counts
+
+Check that there are no genes with 0 counts across all samples.
+
+```{r}
+nrow(gcount)
+gcount<-gcount %>%
+    mutate(Total = rowSums(.[, 1:45]))%>%
+    filter(!Total==0)%>%
+    dplyr::select(!Total)
+nrow(gcount)
+```
+We had 64,636 genes, which was filtered down to 27,292 by removing genes with row sums of 0.  
+
+
+## Conduct data filtering, this includes:  
+
+*pOverA*: Specifying the minimum count for a proportion of samples for each gene. Here, we are using a pOverA of 0.11. This is because we have 45 samples with a minimum of n=5 samples per group Therefore, we will accept genes that are present in 5/45 = 0.11 of the samples because we expect different expression by life stage. We are further setting the minimum count of genes to 10, such that 7% of the samples must have a gene count of >10 in order for the gene to remain in the data set.  
+
+Filter in the package "genefilter". Pre-filtering our dataset to reduce the memory size dataframe, increase the speed of the transformation and testing functions, and improve quality of statistical analysis by removing low-coverage counts. Removed counts could represent outliers in the data and removing these improves sensitivity of statistical tests.   
+
 
 ``` {r QC, echo=TRUE, warning=FALSE, message=FALSE}
 #set filter values for PoverA, P=100% percent of the samples have counts over A=10. This means that only 5 out of 45 (0.11) samples need to have counts over 10. 
-filt <- filterfun(pOverA(0.1,10))
+
+filt <- filterfun(pOverA(0.11,10))
 
 gfilt <- genefilter(gcount, filt)
 
@@ -74,8 +94,8 @@ gn.keep <- rownames(gkeep)
 gcount_filt <- as.data.frame(gcount[which(rownames(gcount) %in% gn.keep),]) ###### look into why this is different than gfilt
 
 #How many rows do we have before and after filtering?
-nrow(gcount) #30740
-nrow(gcount_filt) #5646 for 10, X for 5
+nrow(gcount) #27292
+nrow(gcount_filt) #7286 for 10
 ```
 
 ### Quality-check of datasets  
@@ -84,9 +104,34 @@ nrow(gcount_filt) #5646 for 10, X for 5
 #In order for the DESeq2 algorithms to work, the SampleIDs on the treatmentinfo file and count matrices have to match exactly and in the same order. The following R clump will check to make sure that these match.
 
 #Checking that all row and column names match. Should return "TRUE"
-all(rownames(treatmentinfo$sample_id_full) %in% colnames(gcount_filt))
-all(rownames(treatmentinfo$sample_id_full) == colnames(gcount_filt)) 
+all(rownames(metadata$sample_id) %in% colnames(gcount_filt))
+all(rownames(metadata$sample_id) == colnames(gcount_filt)) 
 ```
+
+
+Display current order of metadata and gene count matrix.  
+```{r}
+metadata$sample_id
+colnames(gcount_filt)
+```
+
+
+Order metadata the same as the column order in the gene matrix.  
+```{r}
+list<-colnames(gcount_filt)
+list<-as.factor(list)
+metadata$sample_id<-as.factor(metadata$sample_id)
+# Re-order the levels
+metadata$sample_id <- factor(as.character(metadata$sample_id), levels=list)
+# Re-order the data.frame
+metadata_ordered <- metadata[order(metadata$sample_id),]
+metadata_ordered$sample_id
+metadata_ordered<-metadata_ordered%>%
+  dplyr::select(sample_id, Group, Day, Fragment.ID, ColDay)
+```
+
+
+# **Construct DESeq2 data set**  
 
 ## Read normalization
 
@@ -98,7 +143,7 @@ We are now going normalize our read counts using VST-normalization in DESeq2
 
 #Set DESeq2 design
 gdds <- DESeqDataSetFromMatrix(countData = round(gcount_filt),
-                               colData = treatmentinfo,
+                               colData = metadata_ordered,
                                design = ~Group+Day)
 ```
 
@@ -115,24 +160,30 @@ print(sizeFactors(SF.gdds)) #View size factors
 #Our size factors are all less than 4, so we can use VST! VST = variance stabilizing transformation to minimize effects of small counts and normalize wrt library size
 
 gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transforamtion to minimize effects of small counts and normalize wrt library size
-#head(assay(gvst), 3) #view transformed gene count data
+head(assay(gvst), 3) #view transformed gene count data
 ```
 
 ## Plot a heatmap of sample-to-sample distances
 
 ```{r pheatmap, echo=TRUE, warning=FALSE, message=FALSE}
-#gsampleDists <- dist(t(assay(gvst))) #calculate distance matix
-#gsampleDistMatrix <- as.matrix(gsampleDists) #distance matrix
-#rownames(gsampleDistMatrix) <- colnames(gvst) #assign row names
-#colnames(gsampleDistMatrix) <- NULL #assign col names
-#colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255) #assign colors
-#pdf("../output/TagSeq/Full_TagSeq_heatmap.pdf")
-#pht=pheatmap(gsampleDistMatrix, #plot matrix
-#             clustering_distance_rows=gsampleDists, #cluster rows
-#             clustering_distance_cols=gsampleDists, #cluster columns
-#             col=colors) #set colors
-#draw(pht)
-#dev.off()
+gsampleDists <- dist(t(assay(gvst))) #calculate distance matix
+gsampleDistMatrix <- as.matrix(gsampleDists) #distance matrix
+rownames(gsampleDistMatrix) <- colnames(gvst) #assign row names
+colnames(gsampleDistMatrix) <- NULL #assign col names
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255) #assign colors
+save_pheatmap_pdf <- function(x, filename, width=7, height=7) {
+   stopifnot(!missing(x))
+   stopifnot(!missing(filename))
+   pdf(filename, width=width, height=height)
+   grid::grid.newpage()
+   grid::grid.draw(x$gtable)
+   dev.off()
+}
+pht<-pheatmap(gsampleDistMatrix, #plot matrix
+         clustering_distance_rows=gsampleDists, #cluster rows
+         clustering_distance_cols=gsampleDists, #cluster columns
+         col=colors) #set colors
+save_pheatmap_pdf(pht, "../../output/TagSeq/pheatmap.pdf")
 ```
 
 ## Principal component plot of samples
@@ -141,6 +192,9 @@ gvst <- vst(gdds, blind=FALSE) #apply a variance stabilizing transforamtion to m
 
 gPCAdata <- plotPCA(gvst, intgroup = c("Group", "Day"), returnData=TRUE)
 percentVar <- round(100*attr(gPCAdata, "percentVar")) #plot PCA of samples with all data
+gPCAdata$Day.Group <- as.factor(paste(gPCAdata$Day, gPCAdata$Group))
+gPCAdata$Day <- as.factor(gPCAdata$Day)
+
 
 pca.centroids<- gPCAdata%>% 
   dplyr::select(Day, Group, PC1, PC2)%>%
@@ -148,7 +202,6 @@ pca.centroids<- gPCAdata%>%
   dplyr::summarise(PC1.mean = mean(PC1),
                    PC2.mean = mean(PC2))
 
-gPCAdata$Day.Group <- paste(gPCAdata$Day, gPCAdata$Group)
 find_hull <- function(gPCAdata) gPCAdata[chull(gPCAdata$PC1, gPCAdata$PC2), ]
 hulls <- plyr::ddply(gPCAdata, "Day.Group", find_hull)
 
@@ -211,8 +264,261 @@ PCAfull<-PCAcen +
   geom_segment(aes(x = Day0_PC1.mean, y = Day0_PC2.mean, xend = Day37_PC1.mean, yend = Day37_PC2.mean, colour = Group), data = segpoints, size=2, show.legend=FALSE) +
   geom_segment(aes(x = Day37_PC1.mean, y = Day37_PC2.mean, xend = Day52_PC1.mean, yend = Day52_PC2.mean, colour = Group), data = segpoints, size=2, arrow = arrow(length=unit(0.5,"cm")), show.legend=FALSE); PCAfull
 
-#ggsave(filename="output/TagSeq/Full_PCA_TagSeq.pdf", plot=PCAfull, dpi=300, width=12, height=10, units="in")
+ggsave(filename="../../output/TagSeq/Full_PCA_TagSeq.pdf", plot=PCAfull, dpi=300, width=12, height=10, units="in")
+
+```
+
+# **WGCNA Construction**
+
+Transpose the filtered gene count matrix so that the gene IDs are rows and the sample IDs are columns.
+```{r}
+data_filt <- as.data.frame(t(assay(gvst))) #transpose to output to a new data frame with the column names as row names. And make all data numeric
+
+# Creating dataframe for DIABLO
+
+data_filt_1 <- tibble::rownames_to_column(data_filt, "sample_id")
+metadata_2 <- metadata %>% dplyr::select(ColDay, sample_id)
+data_filt_2 <- merge(data_filt_1, metadata_2, by = "sample_id")
+data_filt_3 <- data_filt_2 %>% dplyr::select(-sample_id) %>% column_to_rownames(var="ColDay")
+
+# Export as CSV for input into DIABLO
+write.csv(data_filt_3,"../../output/TagSeq/gvst_df.csv")
 
 ```
 
 
+
+
+##Outlier detection
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+
+#Checking that all row and column names match. Should return "TRUE"
+all(rownames(metadata$Sample.ID) %in% colnames(data_filt))
+all(rownames(metadata$Sample.ID) == colnames(data_filt))
+
+sampleTree = hclust(dist(data_filt), method = "average");
+# Plot the sample tree: Open a graphic output window of size 12 by 9 inches
+# The user should change the dimensions if the window is too large or too small.
+pdf("../../output/TagSeq/outliers_samples.pdf")
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
+dev.off()
+#no metabolite outliers
+#Transpose such that genes are in rows and samples are in columns.
+tdata_filt <- t(data_filt) 
+#Look for outliers by examining tree of samples  
+sampleTree = hclust(dist(tdata_filt), method = "average");
+# Plot the sample tree: Open a graphic output window of size 12 by 9 inches
+# The user should change the dimensions if the window is too large or too small.
+pdf("../../output/TagSeq/outliers_genes.pdf")
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
+dev.off()
+# Maybe Control_Ambient_day37_4? 
+```
+
+
+# 2. Network construction and consensus modlue detection
+## Choosing a soft-thresholding power: Analysis of a network topology β
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+# Choose a set of soft-thresholding powers
+#powers <- c(seq(from = 1, to=200, by=2), c(21:30)) #Create a string of numbers from 1 through 10, and even numbers from 10 through 20
+allowWGCNAThreads() 
+powers <- c(c(1:20), seq(from = 12, to=20, by=2)) #Create a string of numbers from 1 through 10, and even numbers from 10 through 20
+# Call the network topology analysis function
+sft <-pickSoftThreshold(data_filt, powerVector = powers, verbose = 5)
+#Plot the results.  
+sizeGrWindow(9, 5)
+par(mfrow = c(1,2));
+cex1 = 0.9;
+# # # Scale-free topology fit index as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+      xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+     main = paste("Scale independence"));
+ text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+     labels=powers,cex=cex1,col="red");
+# # # this line corresponds to using an R^2 cut-off
+ abline(h=0.8,col="red")
+# # # Mean connectivity as a function of the soft-thresholding power
+ plot(sft$fitIndices[,1], sft$fitIndices[,5],
+     xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+     main = paste("Mean connectivity"))
+ text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+ # Soft Threshold power is 5 is close and reduce the number of modules to 4 instead of 5
+```
+
+
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+picked_power = 5
+temp_cor <- cor       
+cor <- WGCNA::cor                                             # Force it to use WGCNA cor function (fix a namespace conflict issue)
+netwk <- blockwiseModules(data_filt,                         # <= input here
+                          # == Adjacency Function ==
+                          power = picked_power,               # <= power here
+                          networkType = "unsigned",
+                          # == Tree and Block Options ==
+                          deepSplit = 2,
+                          pamRespectsDendro = F,
+                          # detectCutHeight = 0.75,
+                          minModuleSize = 20,                  #condsider inreasing or decreasing this
+                          maxBlockSize = 8000,
+                          # == Module Adjustments ==
+                          reassignThreshold = 0,
+                          mergeCutHeight = 0.25,
+                          # == TOM == Archive the run results in TOM file (saves time)
+                          saveTOMs = T,
+                          saveTOMFileBase = "ER",
+                          # == Output Options
+                          numericLabels = T,
+                          verbose = 3)
+cor <- temp_cor     # Return cor function to original namespace
+# Convert labels to colors for plotting
+mergedColors = labels2colors(netwk$colors)
+# Plot the dendrogram and the module colors underneath
+plotDendroAndColors(
+  netwk$dendrograms[[1]],
+  mergedColors[netwk$blockGenes[[1]]],
+  "Module colors",
+  dendroLabels = FALSE,
+  hang = 0.03,
+  addGuide = TRUE,
+  guideHang = 0.05 )
+```
+
+
+## Relate Module (cluster) Assignments to SampleID 
+
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+module_df <- data.frame(
+  gene = names(netwk$colors),
+  colors = labels2colors(netwk$colors)
+)
+
+write.csv(module_df, "../../output/TagSeq/gene_modules.csv")
+
+# Get Module Eigengenes per cluster
+MEs <- moduleEigengenes(data_filt, mergedColors)$eigengenes
+
+# Reorder modules so similar modules are next to each other
+MEs <- orderMEs(MEs)
+module_order = names(MEs) %>% gsub("ME","", .)
+# Add Sample names
+MEs0 <- MEs
+MEs0$Sample.ID = row.names(MEs)
+# tidy & plot data
+mME = MEs0 %>%
+  pivot_longer(-Sample.ID) %>%
+  mutate(
+    name = gsub("ME", "", name),
+    name = factor(name, levels = module_order)
+  )
+mME %>% ggplot(., aes(x=Sample.ID, y=name, fill=value)) +
+  geom_tile() +
+  theme_bw() +
+  scale_fill_gradient2(
+    low = "blue",
+    high = "red",
+    mid = "white",
+    midpoint = 0,
+    limit = c(-1,1)) +
+  theme(axis.text.x = element_text(angle=90)) +
+  labs(title = "Module-Sample Relationships", y = "Modules", fill="corr")
+```
+
+
+## Relate Module (cluster) Assignments to Groupings 
+
+Prepare trait data. Data has to be numeric, so I will substitute time points/developmental stages for numeric values. The "trait" we are considering here is Grouping  
+
+Make a dataframe that has a column for each lifestage name and a row for samples. Populate a 1 for samples that match each Group and a 0 for samples not matching respective Groups 
+
+This process changes Groups from a categorical variable into a binary variable. This will allow for correlations between mean eigengenes and Groups  
+
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+metadata$num <- c("1")
+allTraits <- as.data.frame(pivot_wider(metadata, names_from = Grouping, values_from = num, id_cols = sample_id))
+allTraits[is.na(allTraits)] <- c("0")
+rownames(allTraits) <- allTraits$Sample.ID
+datTraits <- allTraits[,c(-1)]
+head(datTraits)
+# Define numbers of genes and samples and print. 
+nGenes = ncol(data_filt)
+nSamples = nrow(data_filt)
+nGenes #7286
+nSamples#45
+# Correlations of traits with eigengenes
+moduleTraitCor = cor(MEs, datTraits, use = "p");
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
+Colors=sub("ME","", names(MEs))
+moduleTraitTree = hclust(dist(t(moduleTraitCor)), method = "average")
+pdf(file="../../output/TagSeq/ModuleTraitClusterTree.pdf", height=8, width=22)
+plot(moduleTraitTree)
+dev.off()
+# Correlations of metabolites with eigengenes. Calculate correlations between ME's and groups 
+moduleGeneCor=cor(MEs,data_filt)
+moduleGenePvalue = corPvalueStudent(moduleGeneCor, nSamples);
+head(moduleGenePvalue)
+#Calculate kME values (module membership). 
+#datKME = signedKME(tdata_filt, MEs0, outputColumnName = "kME")
+#head(datKME)
+#Save module colors and labels for use in subsequent analyses.  
+#save(MEs, moduleLabels, moduleColors, geneTree, file = "Mcap2020/Output/Metabolomics/NetworkConstructionWGCNA.RData") 
+```
+## Plot module-trait associations
+
+Represent module trait correlations as a heatmap 
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",signif(moduleTraitPvalue, 1), ")", sep = "")
+dim(textMatrix) = dim(moduleTraitCor)
+head(textMatrix)
+labeledHeatmap(Matrix = moduleTraitCor, xLabels = names(datTraits),  yLabels = names(MEs), ySymbols = names(MEs), cex.lab.y= 0.55, cex.lab.x= 0.55, colors = blueWhiteRed(50), textMatrix = textMatrix, setStdMargins = TRUE, cex.text = 0.25, textAdj = , zlim = c(-1,1), main = paste("Module-trait relationships"))
+pdf(file="../../output/TagSeq/Module-trait-relationships.pdf")
+labeledHeatmap(Matrix = moduleTraitCor, xLabels = names(datTraits),  yLabels = names(MEs), ySymbols = names(MEs), cex.lab.y= 0.55, cex.lab.x= 0.55, colors = blueWhiteRed(50), textMatrix = textMatrix, setStdMargins = TRUE, cex.text = 0.25, textAdj = , zlim = c(-1,1), main = paste("Module-trait relationships"))
+dev.off()
+```
+
+
+# Generate a complex heatmap of module-trait relationships.  
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+#bold sig p-values
+#dendrogram with WGCNA MEtree cut-off
+#colored y-axis
+#Create list of pvalues for eigengene correlation with specific life stages
+heatmappval <- signif(moduleTraitPvalue, 1)
+#Make list of heatmap row colors
+htmap.colors <- names(MEs)
+htmap.colors <- gsub("ME", "", htmap.colors)
+library(dendsort)
+row_dend = dendsort(hclust(dist(moduleTraitCor)))
+col_dend = dendsort(hclust(dist(t(moduleTraitCor))))
+#row_ha = rowAnnotation(ModuleSize = anno_text("11", "127", "8", "64", "85"), just = "left", 
+#        location = unit(0.5, "npc"), show_name = TRUE)
+# brown (11), grey (127), yellow (8), blue (64), turqoise (85) #figure out how to do row annotations to add sample sizes
+pdf(file = "../../output/TagSeq/Module-trait-relationship-heatmap.pdf", height = 8, width = 8)
+ht=Heatmap(moduleTraitCor, name = "Eigengene", column_title = "Module-Group Eigengene Correlation", 
+        col = blueWhiteRed(50), 
+        row_names_side = "left", 
+        row_dend_side = "left",
+        width = unit(5, "in"), 
+        height = unit(4.5, "in"), 
+        column_dend_reorder = TRUE, 
+        #cluster_columns = hclust(dist(t(moduleTraitCor)), method = "average"),
+        cluster_columns = col_dend,
+        row_dend_reorder = FALSE,
+        column_split = 6, 
+        column_dend_height = unit(.5, "in"),
+        #cluster_rows = METree, 
+        cluster_rows = row_dend, 
+        row_gap = unit(2.5, "mm"), 
+        border = TRUE,
+        cell_fun = function(j, i, x, y, w, h, col) {
+        if(heatmappval[i, j] < 0.05) {
+            grid.text(sprintf("%s", heatmappval[i, j]), x, y, gp = gpar(fontsize = 10, fontface = "bold"))
+        }
+        else {
+            grid.text(sprintf("%s", heatmappval[i, j]), x, y, gp = gpar(fontsize = 10, fontface = "plain"))
+        }},
+        column_names_gp =  gpar(fontsize = 12, border=FALSE),
+        row_names_gp = gpar(fontsize = 12, alpha = 0.75, border = FALSE))
+draw(ht)
+dev.off()
+```

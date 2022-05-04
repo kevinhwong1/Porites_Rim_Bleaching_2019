@@ -1,0 +1,282 @@
+---
+title: "DIABLO"
+author: "Kevin Wong"
+date: "03/05/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(ggplot2)
+library(corpcor)
+library(janitor)
+library(mixOmics)
+library(tidyverse)
+library(genefilter)
+library(DESeq2)
+
+
+# 
+# ## install BiocManager if not installed
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# 
+# ## install mixOmics
+# BiocManager::install('mixOmics')
+# 
+# install.packages("MASS", force=TRUE)
+# library(mixOmics)
+# 
+# library(dplyr)
+```
+
+## Import and clean data
+
+```{r}
+
+# Import data, make sure all rows are in order in each dataset
+Metabolome <- read.csv("output/Metabolomics/metab_df.csv", check.names = FALSE)
+Microbiome <- read.csv("output/16S/processed_data/ASV_df.csv", check.names = FALSE)
+Gene <- read.csv("output/TagSeq/gvst_df.csv", check.names = FALSE)
+metadata <- read.csv("data/Metadata/Frag_Sample_Info.csv")
+
+metadata$GroupDay <- paste(metadata$Group, metadata$Day, sep = "-")
+
+# Need to clean the datasets: 1) remove sample that is missing from mirco DF (R19-52)
+colnames(Microbiome)[1] <- "ColDay"
+colnames(Metabolome)[1] <- "ColDay"
+colnames(Gene)[1] <- "ColDay"
+
+Metabolome2 <- Metabolome %>% dplyr::filter(ColDay != "R19-52")
+Gene2 <- Gene %>% dplyr::filter(ColDay != "R19-52")
+metadata2 <- metadata %>% dplyr::filter(ColDay != "R19-52")
+
+```
+
+```{r}
+# Filtering for just day 52
+
+metadata3 <- metadata2 %>% filter(grepl("-52", ColDay, fixed = TRUE)) %>% mutate(Group = replace(Group, Group == "Mortality", "Partial-Mortality"))
+Metabolome3 <- Metabolome2 %>% filter(grepl("-52", ColDay, fixed = TRUE))
+Microbiome3 <- Microbiome %>% filter(grepl("-52", ColDay, fixed = TRUE))
+Gene3 <- Gene2 %>% filter(grepl("-52", ColDay, fixed = TRUE))
+
+#Re-ordering rows so they all match between dataframes
+metadata3 <- arrange(metadata3, ColDay)
+Metabolome3 <- arrange(Metabolome3, ColDay)
+Microbiome3 <- arrange(Microbiome3, ColDay)
+Gene3 <- arrange(Gene3, ColDay)
+
+# Make ColDay rownames
+rownames(Metabolome3) <- paste0(Metabolome3$ColDay)
+rownames(Microbiome3) <- paste0(Microbiome3$ColDay)
+rownames(Gene3) <- paste0(Gene3$ColDay)
+
+Metabolome_final <- Metabolome3 %>% dplyr::select(-ColDay)
+Microbiome_final <- Microbiome3 %>% dplyr::select(-ColDay)
+Gene_final <- Gene3 %>% dplyr::select(-ColDay)
+```
+
+# SPLSDA for each omic
+
+```{r}
+# Metabolomics
+
+#assigning datasets 
+X <- Metabolome_final
+Y <- as.factor(metadata3$Group) #select treatment names
+Y
+MyResult.plsda_metab <- plsda(X,Y, ncomp=2) #number of components is classes-1
+#MyResult.splsda_metab <- splsda(X,Y, ncomp=12) #number of components is classes-1
+plotIndiv(MyResult.plsda_metab) 
+
+#Run SPLSDA to tune parameters
+MyPerf.plsda_metab <- perf(MyResult.plsda_metab, validation = "Mfold", folds=4, #fold #? 
+                     progressBar = TRUE, nrepeat = 20) # we suggest nrepeat = 50
+plot(MyPerf.plsda_metab,  sd = TRUE)
+
+#Determine keepX
+#now run tune splsda 
+list.keepX <- c(2:10,  seq(20, 300, 10))
+set.seed(30) # for reproducbility in this vignette, otherwise increase nrepeat
+tune.splsda.srbct <- tune.splsda(X, Y, ncomp = 2, 
+                                 validation = 'Mfold', folds=4,
+                                 measure = "BER", test.keepX = list.keepX, nrepeat=20)   # we suggest nrepeat = 50
+error <- tune.splsda.srbct$error.rate
+ncomp.metab <- tune.splsda.srbct$choice.ncomp$ncomp # optimal number of components based on t-tests on the error rate
+ncomp.metab
+select.keepX.metab <- tune.splsda.srbct$choice.keepX# optimal number of variables to select
+select.keepX.metab
+plot(tune.splsda.srbct)
+```
+
+
+```{r}
+# Micro
+
+#assigning datasets 
+X <- Microbiome_final
+Y <- as.factor(metadata3$Group) #select treatment names
+Y
+MyResult.plsda_micro <- plsda(X,Y, ncomp=2) #number of components is classes-1
+#MyResult.splsda_metab <- splsda(X,Y, ncomp=12) #number of components is classes-1
+plotIndiv(MyResult.plsda_micro)
+
+#Run SPLSDA to tune parameters
+MyPerf.plsda_micro <- perf(MyResult.plsda_micro, validation = "Mfold", folds=4, #fold #? 
+                     progressBar = TRUE, nrepeat = 20) # we suggest nrepeat = 50
+plot(MyPerf.plsda_micro,  sd = TRUE)
+
+#Determine keepX
+#now run tune splsda 
+list.keepX <- c(2:10,  seq(20, 300, 10))
+set.seed(30) # for reproducbility in this vignette, otherwise increase nrepeat
+tune.splsda.srbct <- tune.splsda(X, Y, ncomp = 2, 
+                                 validation = 'Mfold', folds=4,
+                                 measure = "BER", test.keepX = list.keepX, nrepeat=20)   # we suggest nrepeat = 50
+error <- tune.splsda.srbct$error.rate
+ncomp.micro <- tune.splsda.srbct$choice.ncomp$ncomp # optimal number of components based on t-tests on the error rate
+ncomp.micro
+select.keepX.micro <- tune.splsda.srbct$choice.keepX# optimal number of variables to select
+select.keepX.micro
+plot(tune.splsda.srbct)
+```  
+comp1 comp2 
+    7   270 
+
+```{r}
+# Genes
+
+#assigning datasets 
+X <- Gene_final
+Y <- as.factor(metadata3$Group) #select treatment names
+Y
+MyResult.plsda_gene <- plsda(X,Y, ncomp=2) #number of components is classes-1
+#MyResult.splsda_metab <- splsda(X,Y, ncomp=12) #number of components is classes-1
+plotIndiv(MyResult.plsda_gene)
+
+#Run SPLSDA to tune parameters
+MyPerf.plsda_gene <- perf(MyResult.plsda_gene, validation = "Mfold", folds=4, #fold #? 
+                     progressBar = TRUE, nrepeat = 20) # we suggest nrepeat = 50
+plot(MyPerf.plsda_gene,  sd = TRUE)
+
+#Determine keepX
+#now run tune splsda 
+list.keepX <- c(2:10,  seq(20, 300, 10))
+set.seed(30) # for reproducbility in this vignette, otherwise increase nrepeat
+tune.splsda.srbct <- tune.splsda(X, Y, ncomp = 2, 
+                                 validation = 'Mfold', folds=4,
+                                 measure = "BER", test.keepX = list.keepX, nrepeat=20)   # we suggest nrepeat = 50
+error <- tune.splsda.srbct$error.rate
+ncomp.gene <- tune.splsda.srbct$choice.ncomp$ncomp # optimal number of components based on t-tests on the error rate
+ncomp.gene
+select.keepX.gene <- tune.splsda.srbct$choice.keepX# optimal number of variables to select
+select.keepX.gene
+plot(tune.splsda.srbct)
+```
+
+comp1 comp2 
+   10     2 
+
+# Run DIABLO
+
+```{r}
+
+# extract training data and name each data frame
+X <- list(metabolites = Metabolome_final, # all rows are samples, columns are compounds/genes
+          microbes = Microbiome_final)
+#          genes = Gene_final)
+Y <- as.factor(metadata3$GroupDay)
+summary(Y)
+
+#list.keepX <- list(genes = c(10,2), metabolites = c(80,90), microbes = c(7, 200))
+list.keepX <- list(metabolites = c(100,100), microbes = c(300, 300))
+
+MyResult.diablo <- block.splsda(X, Y, keepX=list.keepX, ncomp=2)
+plotIndiv(MyResult.diablo) ## sample plot
+#plotVar(MyResult.diablo) ## variable plot
+
+plotDiablo(MyResult.diablo, ncomp = 1)
+
+```
+
+Plot circos plot  
+
+```{r}
+t_col <- function(color, percent = 50, name = NULL) {
+  #      color = color name
+  #    percent = % transparency
+  #       name = an optional name for the color
+
+## Get RGB values for named color
+rgb.val <- col2rgb(color)
+
+## Make new color using input color as base and alpha set by transparency
+t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3],
+             max = 255,
+             alpha = (100 - percent) * 255 / 100,
+             names = name)
+
+## Save the color
+invisible(t.col)
+}
+
+mycol <- t_col("white", perc = 100, name = "transp")
+
+#circos plot
+circosPlot(MyResult.diablo, cutoff=0.9, line = TRUE, showIntraLinks=FALSE, color.cor=c("red", "blue"))
+
+cor_mat<-circosPlot(MyResult.diablo, cutoff=0.9)
+```
+
+Output plot and correlation matrix.  
+```{r}
+pdf("../output/DIABLO/circos0.80.pdf", width=12, height=12)
+circosPlot(MyResult.diablo, cutoff=0.80, line = TRUE, showIntraLinks=FALSE, color.cor=c("red", "blue"))
+dev.off()
+```
+
+Export correlation matrix.  
+```{r}
+test<-cor_mat
+test[test <0.90]<-NA
+  
+write.csv(test, "../output/DIABLO/cor_circos_0.90.csv")
+```
+
+
+Plot heatmap  
+```{r}
+library(pheatmap)
+pheatmap::pheatmap(cor_mat, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, show_colnames = FALSE)
+```
+
+Plot cim plot  
+```{r}
+
+library(ggplot2)
+
+cimDiablo(MyResult.diablo, color.blocks = c('darkorchid', 'brown1', 'lightgreen'), comp = 1, margin=c(8,20), legend.position = "right")
+
+dev.off()
+
+## AH Run this line please :)
+cimDiablo(MyResult.diablo, margin=c(8,8), legend.position = "none", comp = c(1,2), trim=2)
+
+cimDiablo(MyResult.diablo, margin=c(8,8), comp = c(1,2), trim=2)
+
+pdf("../output/DIABLO/cim_plot.pdf", height=8, width=8)
+cimDiablo(MyResult.diablo, margin=c(8,8), legend.position = "right", comp = c(1,2), trim=2)
+dev.off()
+res <- cimDiablo(MyResult.diablo) ## save the output
+res_mat<-res$mat
+#can use this to pull out correlations with groups (this is super great!)
+write.csv(res_mat, "../output/DIABLO/cim_matrix.csv")
+```

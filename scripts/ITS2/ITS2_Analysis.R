@@ -60,3 +60,17 @@ rel_abun_bar <- ggplot(rel_its2_meta2, aes(x = Colony_ID, y = relabund, fill = C
                      panel.grid.minor = element_blank(), axis.line = element_blank(), axis.text.x.bottom = element_text(angle = -90))
 
 ggsave(filename="output/ITS2/Relative_Abundance_Barplot.png", plot=rel_abun_bar, dpi=300, width=10, height=5, units="in")
+
+
+sym <- read.csv("output/Physiology/Zoox.Calc.csv")
+
+sym_abun_bar <- ggplot(sym, aes(x = Fragment.ID, y = Cells.cm2.x6)) + 
+  geom_bar(stat = "identity" ) + 
+  labs(x="", y="Cellsx10^6 cm2 ") +
+  scale_fill_brewer(palette="Spectral") +
+  facet_wrap(~Group+Day, scales= "free_x", nrow=1) +
+  theme_bw() + 
+  theme(panel.border = element_rect(color="black", fill=NA, size=0.75), panel.grid.major = element_blank(), #Makes background theme white
+        panel.grid.minor = element_blank(), axis.line = element_blank(), axis.text.x.bottom = element_text(angle = -90))
+
+

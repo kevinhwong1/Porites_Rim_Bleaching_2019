@@ -234,7 +234,6 @@ names(norm.data.known)[3] <- "Day"
 names(norm.data.known)[4] <- "Group"
 
 write.csv(norm.data.known, "../../output/Metabolomics/Norm_Data_Known.csv")
-
 ```
 
 
@@ -247,7 +246,6 @@ Code inspired by:
 - https://github.com/urol-e5/timeseries/blob/master/time_series_analysis/integration_biological.Rmd line 2465
 
 ``` {r PCA all, echo=TRUE, warning=FALSE, message=FALSE}
-
 
 scaled_pca_all <-prcomp(norm.data.all[c(5:ncol(norm.data.all))], scale=TRUE, center=TRUE)
 fviz_eig(scaled_pca_all)
