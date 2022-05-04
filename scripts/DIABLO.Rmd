@@ -270,11 +270,21 @@ dev.off()
 ## AH Run this line please :)
 cimDiablo(MyResult.diablo, margin=c(8,8), legend.position = "none", comp = c(1,2), trim=2)
 
+
 cimDiablo(MyResult.diablo, margin=c(8,8), comp = c(1,2), trim=2)
 
-pdf("../output/DIABLO/cim_plot.pdf", height=8, width=8)
+
+#THIS LINE WORKED FOR AH IF YOU RUN THESE THREE LINES TOGETHER - OUTPUTS TO THE PROJECT HOME FOLDER AS cim_XData.jpeg 
+par(mar=c(8, 8, 8, 8), mfrow = c(1, 1))
+cimDiablo(MyResult.diablo, margin=c(4,4), comp = c(1,2), trim=2, save='jpeg')
+dev.off()
+
+
+
+pdf("../output/DIABLO/cim_plot.pdf", height=12, width=12)
 cimDiablo(MyResult.diablo, margin=c(8,8), legend.position = "right", comp = c(1,2), trim=2)
 dev.off()
+
 res <- cimDiablo(MyResult.diablo) ## save the output
 res_mat<-res$mat
 #can use this to pull out correlations with groups (this is super great!)
