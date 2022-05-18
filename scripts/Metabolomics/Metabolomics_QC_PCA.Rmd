@@ -151,6 +151,17 @@ peak.neg4$polarity <- "negative"
 
 peak.unknown4$polarity <- "unknown"
 
+#Determining number of compounds for each polarity/unknown
+
+pos.comp <- unique(peak.pos4$compound)
+length(pos.comp) # 77
+
+neg.comp <- unique(peak.neg4$compound)
+length(neg.comp) # 86
+
+unknown.comp <- unique(peak.unknown4$compound)
+length(unknown.comp) # 128
+
 # Binding positive, negative, unknown datasets together
 peak.all <- rbind(peak.pos4, peak.neg4, peak.unknown4) #All detected metabolites
 
@@ -172,12 +183,11 @@ names(peak.all)[3] <- "Raw.IonCount"
 peak.all2 <- merge(peak.all, sample.info, by = "Sample.ID")
 
 #Normalization by weight
-
 peak.all2$Raw.IonCount <- as.numeric(as.character(peak.all2$Raw.IonCount))
 peak.all2$Norm.IonCount <- peak.all2$Raw.IonCount / peak.all2$Weight.mg
 
 #Selecting columns of interest
-peak.all3 <- peak.all2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Day, Norm.IonCount)
+peak.all3 <- peak.all2 %>% dplyr::select(Sample.ID, compound, Fragment.ID, Day, Group, Norm.IonCount)
 
 #Reformatting dataframe so compounds are listed as column headers
 peak.all4 <- peak.all3 %>% spread(compound, Norm.IonCount)
@@ -198,7 +208,7 @@ write.csv(norm.data.all, "../../output/Metabolomics/Norm_Data_All.csv")
 ### Making a dataset for omic integration (Diablo)
 norm.data.all$ColDay <- paste(norm.data.all$Fragment.ID, norm.data.all$Day, sep = "-")
 rownames(norm.data.all) <- paste0(norm.data.all$ColDay)
-metab.df <- norm.data.all %>% dplyr::select(-Sample.ID, -Fragment.ID, -Time, -Day, -ColDay)
+metab.df <- norm.data.all %>% dplyr::select(-Sample.ID, -Fragment.ID, -Day, -ColDay)
 
 write.csv(metab.df, "../../output/Metabolomics/metab_df.csv")
 

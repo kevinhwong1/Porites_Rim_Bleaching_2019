@@ -12,11 +12,12 @@ library(ggplot2)
 ## filelist.csv created during pipeline in andromeda and scp to desktop to work with in R
 
 file_names <- read.csv("output/16S/filelist.csv", header = FALSE) %>%
-  select(V2) %>% ## reading in filelist as dataframe and only the second column
+  dplyr::select(V2) %>% ## reading in filelist as dataframe and only the second column
   dplyr::rename(`absolute-filepath` = V2) # renaming to match the verbiage of qiime2
 
 sample_manifest <- file_names # creating a new df based on the original file_names df
-sample_manifest$path <- "/data/putnamlab/kevin_wong1/PJB_16S/raw_data/" #adding the absolute file path
+sample_manifest$path <- "data/putnamlab/kevin_wong1/PJB_16S/raw_data/" #adding the absolute file path
+
 
 sample_manifest <- sample_manifest %>% unite(`absolute-filepath`, path, `absolute-filepath`, sep = "") %>% # merging the two columns to complete the file path
   mutate(direction = case_when(grepl("R1", `absolute-filepath`) ~ "forward",
@@ -36,7 +37,7 @@ write.table(sample_manifest, "output/16S/sample_manifest.txt", sep = "\t", row.n
 
 ## 2. Sample metadata file
 metadata <- read.csv("data/Molecular/16S/16S_Seq_Metadata.csv", header = TRUE) %>%
-  select(-Plate, -Well, -Vial) # removing 2 columns that are not needed for this metadata sheet
+  dplyr::select(-Plate, -Well, -Vial) # removing 2 columns that are not needed for this metadata sheet
 
 categories <- c("#q2:types", "categorical", "categorical", "categorical", "categorical") # QIIME2 needs each column to be specified
 
@@ -89,3 +90,12 @@ reads
 
 ggsave(file="output/16S/processed_data/denoising-percent.png", percent, width = 11, height = 6, units = c("in"))
 ggsave(file="output/16S/processed_data/denoising-reads.png", reads, width = 11, height = 6, units = c("in"))
+
+
+## Obtaining read statistics
+
+denoise.reads_input <- denoise.reads %>% filter(parameter == "260forward_230reverse") %>% filter(statistic == "input")
+sum(denoise.reads_input$value)
+
+denoise.reads_nonchimeric <- denoise.reads %>% filter(parameter == "260forward_230reverse") %>% filter(statistic == "non.chimeric")
+sum(denoise.reads_nonchimeric$value)

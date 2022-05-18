@@ -44,7 +44,7 @@ library(DESeq2)
 # Import data, make sure all rows are in order in each dataset
 Metabolome <- read.csv("output/Metabolomics/metab_df.csv", check.names = FALSE)
 Microbiome <- read.csv("output/16S/processed_data/ASV_df.csv", check.names = FALSE)
-Gene <- read.csv("output/TagSeq/gvst_df.csv", check.names = FALSE)
+#Gene <- read.csv("output/TagSeq/gvst_df.csv", check.names = FALSE)
 metadata <- read.csv("data/Metadata/Frag_Sample_Info.csv")
 
 metadata$GroupDay <- paste(metadata$Group, metadata$Day, sep = "-")
@@ -54,9 +54,12 @@ colnames(Microbiome)[1] <- "ColDay"
 colnames(Metabolome)[1] <- "ColDay"
 colnames(Gene)[1] <- "ColDay"
 
-Metabolome2 <- Metabolome %>% dplyr::filter(ColDay != "R19-52")
-Gene2 <- Gene %>% dplyr::filter(ColDay != "R19-52")
-metadata2 <- metadata %>% dplyr::filter(ColDay != "R19-52")
+Metabolome2 <- Metabolome %>% dplyr::filter(ColDay != "R19-52") 
+Microbiome2 <- Microbiome %>% dplyr::filter(ColDay != "R19-52") 
+
+#Gene2 <- Gene %>% dplyr::filter(ColDay != "R19-52")
+
+metadata2 <- metadata %>% dplyr::filter(ColDay != "R19-52") 
 
 ```
 
@@ -65,23 +68,23 @@ metadata2 <- metadata %>% dplyr::filter(ColDay != "R19-52")
 
 metadata3 <- metadata2 %>% filter(grepl("-52", ColDay, fixed = TRUE)) %>% mutate(Group = replace(Group, Group == "Mortality", "Partial-Mortality"))
 Metabolome3 <- Metabolome2 %>% filter(grepl("-52", ColDay, fixed = TRUE))
-Microbiome3 <- Microbiome %>% filter(grepl("-52", ColDay, fixed = TRUE))
-Gene3 <- Gene2 %>% filter(grepl("-52", ColDay, fixed = TRUE))
+Microbiome3 <- Microbiome2 %>% filter(grepl("-52", ColDay, fixed = TRUE))
+#Gene3 <- Gene2 %>% filter(grepl("-52", ColDay, fixed = TRUE))
 
 #Re-ordering rows so they all match between dataframes
 metadata3 <- arrange(metadata3, ColDay)
 Metabolome3 <- arrange(Metabolome3, ColDay)
 Microbiome3 <- arrange(Microbiome3, ColDay)
-Gene3 <- arrange(Gene3, ColDay)
+#Gene3 <- arrange(Gene3, ColDay)
 
 # Make ColDay rownames
 rownames(Metabolome3) <- paste0(Metabolome3$ColDay)
 rownames(Microbiome3) <- paste0(Microbiome3$ColDay)
-rownames(Gene3) <- paste0(Gene3$ColDay)
+#rownames(Gene3) <- paste0(Gene3$ColDay)
 
-Metabolome_final <- Metabolome3 %>% dplyr::select(-ColDay)
+Metabolome_final <- Metabolome3 %>% dplyr::select(-ColDay) 
 Microbiome_final <- Microbiome3 %>% dplyr::select(-ColDay)
-Gene_final <- Gene3 %>% dplyr::select(-ColDay)
+#Gene_final <- Gene3 %>% dplyr::select(-ColDay)
 ```
 
 # SPLSDA for each omic
@@ -117,6 +120,9 @@ select.keepX.metab
 plot(tune.splsda.srbct)
 ```
 
+comp1 comp2 
+   80    90 
+
 
 ```{r}
 # Micro
@@ -149,37 +155,37 @@ select.keepX.micro
 plot(tune.splsda.srbct)
 ```  
 comp1 comp2 
-    7   270 
+    2   290 
 
 ```{r}
-# Genes
-
-#assigning datasets 
-X <- Gene_final
-Y <- as.factor(metadata3$Group) #select treatment names
-Y
-MyResult.plsda_gene <- plsda(X,Y, ncomp=2) #number of components is classes-1
-#MyResult.splsda_metab <- splsda(X,Y, ncomp=12) #number of components is classes-1
-plotIndiv(MyResult.plsda_gene)
-
-#Run SPLSDA to tune parameters
-MyPerf.plsda_gene <- perf(MyResult.plsda_gene, validation = "Mfold", folds=4, #fold #? 
-                     progressBar = TRUE, nrepeat = 20) # we suggest nrepeat = 50
-plot(MyPerf.plsda_gene,  sd = TRUE)
-
-#Determine keepX
-#now run tune splsda 
-list.keepX <- c(2:10,  seq(20, 300, 10))
-set.seed(30) # for reproducbility in this vignette, otherwise increase nrepeat
-tune.splsda.srbct <- tune.splsda(X, Y, ncomp = 2, 
-                                 validation = 'Mfold', folds=4,
-                                 measure = "BER", test.keepX = list.keepX, nrepeat=20)   # we suggest nrepeat = 50
-error <- tune.splsda.srbct$error.rate
-ncomp.gene <- tune.splsda.srbct$choice.ncomp$ncomp # optimal number of components based on t-tests on the error rate
-ncomp.gene
-select.keepX.gene <- tune.splsda.srbct$choice.keepX# optimal number of variables to select
-select.keepX.gene
-plot(tune.splsda.srbct)
+# # Genes
+# 
+# #assigning datasets 
+# X <- Gene_final
+# Y <- as.factor(metadata3$Group) #select treatment names
+# Y
+# MyResult.plsda_gene <- plsda(X,Y, ncomp=2) #number of components is classes-1
+# #MyResult.splsda_metab <- splsda(X,Y, ncomp=12) #number of components is classes-1
+# plotIndiv(MyResult.plsda_gene)
+# 
+# #Run SPLSDA to tune parameters
+# MyPerf.plsda_gene <- perf(MyResult.plsda_gene, validation = "Mfold", folds=4, #fold #? 
+#                      progressBar = TRUE, nrepeat = 20) # we suggest nrepeat = 50
+# plot(MyPerf.plsda_gene,  sd = TRUE)
+# 
+# #Determine keepX
+# #now run tune splsda 
+# list.keepX <- c(2:10,  seq(20, 300, 10))
+# set.seed(30) # for reproducbility in this vignette, otherwise increase nrepeat
+# tune.splsda.srbct <- tune.splsda(X, Y, ncomp = 2, 
+#                                  validation = 'Mfold', folds=4,
+#                                  measure = "BER", test.keepX = list.keepX, nrepeat=20)   # we suggest nrepeat = 50
+# error <- tune.splsda.srbct$error.rate
+# ncomp.gene <- tune.splsda.srbct$choice.ncomp$ncomp # optimal number of components based on t-tests on the error rate
+# ncomp.gene
+# select.keepX.gene <- tune.splsda.srbct$choice.keepX# optimal number of variables to select
+# select.keepX.gene
+# plot(tune.splsda.srbct)
 ```
 
 comp1 comp2 
@@ -197,7 +203,7 @@ Y <- as.factor(metadata3$GroupDay)
 summary(Y)
 
 #list.keepX <- list(genes = c(10,2), metabolites = c(80,90), microbes = c(7, 200))
-list.keepX <- list(metabolites = c(100,100), microbes = c(300, 300))
+list.keepX <- list(metabolites = c(80,90), microbes = c(2, 290))
 
 MyResult.diablo <- block.splsda(X, Y, keepX=list.keepX, ncomp=2)
 plotIndiv(MyResult.diablo) ## sample plot
@@ -210,83 +216,211 @@ plotDiablo(MyResult.diablo, ncomp = 1)
 Plot circos plot  
 
 ```{r}
-t_col <- function(color, percent = 50, name = NULL) {
-  #      color = color name
-  #    percent = % transparency
-  #       name = an optional name for the color
-
-## Get RGB values for named color
-rgb.val <- col2rgb(color)
-
-## Make new color using input color as base and alpha set by transparency
-t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3],
-             max = 255,
-             alpha = (100 - percent) * 255 / 100,
-             names = name)
-
-## Save the color
-invisible(t.col)
-}
-
-mycol <- t_col("white", perc = 100, name = "transp")
-
+col <- c("#8B0046","#46008B", "#468B00")
 #circos plot
-circosPlot(MyResult.diablo, cutoff=0.9, line = TRUE, showIntraLinks=FALSE, color.cor=c("red", "blue"))
-
-cor_mat<-circosPlot(MyResult.diablo, cutoff=0.9)
+circosPlot(MyResult.diablo, cutoff=0.85, color.Y = col, line = TRUE, showIntraLinks=FALSE, color.cor=c("red", "blue"))
+cor_mat<-circosPlot(MyResult.diablo, cutoff=0.85, showIntraLinks=FALSE)
 ```
 
 Output plot and correlation matrix.  
 ```{r}
-pdf("../output/DIABLO/circos0.80.pdf", width=12, height=12)
-circosPlot(MyResult.diablo, cutoff=0.80, line = TRUE, showIntraLinks=FALSE, color.cor=c("red", "blue"))
+pdf("output/DIABLO/circos0.85.pdf", width=12, height=12)
+circosPlot(MyResult.diablo, cutoff=0.85, color.Y = col, line = TRUE, showIntraLinks=FALSE, color.cor=c("red", "blue"))
 dev.off()
 ```
 
 Export correlation matrix.  
 ```{r}
 test<-cor_mat
-test[test <0.90]<-NA
-  
-write.csv(test, "../output/DIABLO/cor_circos_0.90.csv")
+
+# Making values <0.85 NA - need to double check this is keeping the negative correlations 
+test[abs(test) < 0.85]<-NA
+write.csv(test, "output/DIABLO/cor_circos_0.85.csv")
+
+# I want to make the rows metabolites and the columns ASV
+test2 <- as.data.frame(test)
+test3 <- test2 %>% dplyr::select(starts_with("ASV"))
+test4 <- as.data.frame(t(test3))
+test5 <- test4 %>% dplyr::select(-starts_with("ASV"))
+test5 <- tibble::rownames_to_column(test5, "ASV")
+
+# Melting dataset
+test6 <- melt(data = test5,
+              id.vars = "ASV",
+              variable.name = "Metabolite",
+              value.name = "Corr.r")
+
+colnames(test6)[2] <- "Metabolite"
+colnames(test6)[3] <- "Corr.r"
+
+# Removing NAs
+test7 <- test6 %>% dplyr::filter(Corr.r != "NA")
+write.csv(test7, "output/DIABLO/Micro_Metab_corr.csv")
+
+length(unique(test7$ASV)) # 78 unique ASVs
+length(unique(test7$Metabolite)) # 69 unique Metabolites
+
+ASV_TAX_ID <- read.csv("output/16S/processed_data/ASV_taxID.csv")
+
+test8 <- merge(test7,ASV_TAX_ID,  by = "ASV")
+
+test9 <- test8 %>% dplyr::select(-X, -ASV_ID, -Kingdom)
+write.csv(test9, "output/DIABLO/Micro_Metab_corr_annotated.csv")
+
+length(unique(test9$Class)) # 17
+length(unique(test9$Order)) # 34
+length(unique(test9$Family)) # 43
+length(unique(test9$Genus)) # 46
+length(unique(test9$Species)) # 60
+length(unique(test9$ASV)) #78
+
+length(unique(test9$Metabolite)) #69
+
+test9_unknown_metab <- test9 %>% dplyr::filter(grepl("Feature", Metabolite, fixed = TRUE))
+length(unique(test9_unknown_metab$Metabolite)) #61 unannotated, 8 annotated
+
+test9_glycerate <- test9 %>% dplyr::filter(Metabolite == "Glycerate") #72
+length(unique(test9_glycerate$Genus)) #45
+length(unique(test9_glycerate$Family)) #42
+length(unique(test9_glycerate$Order)) #42
+write.csv(test9_glycerate, "output/DIABLO/Micro_Metab_corr_glycerate.csv")
+
+test9_cytophagales <- test9 %>% dplyr::filter(Order == "Cytophagales") #76
+length(unique(test9_cytophagales$Metabolite)) #68
+write.csv(test9_cytophagales, "output/DIABLO/Micro_Metab_corr_cytophagales.csv")
+
+test9_rickettsiales <- test9 %>% dplyr::filter(Order == "Rickettsiales") #76
+length(unique(test9_rickettsiales$Metabolite)) #67
+write.csv(test9_cytophagales, "output/DIABLO/Micro_Metab_corr_cytophagales.csv")
+
+test9_pos <- test9 %>% dplyr::filter(Corr.r > 0) #138
+test9_neg <- test9 %>% dplyr::filter(Corr.r < 0) #107
+
 ```
+
+
+```{r}
+# Libraries
+library(tidyverse)
+library(viridis)
+library(patchwork)
+library(hrbrthemes)
+library(circlize)
+
+# Load dataset from github
+data <- read.table("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/13_AdjacencyDirectedWeighted.csv", header=TRUE)
+# Package
+library(networkD3)
+
+# I need a long format
+data_long <- data %>%
+  rownames_to_column %>%
+  gather(key = 'key', value = 'value', -rowname) %>%
+  filter(value > 0)
+colnames(data_long) <- c("source", "target", "value")
+data_long$target <- paste(data_long$target, " ", sep="")
+
+# From these flows we need to create a node data frame: it lists every entities involved in the flow
+nodes <- data.frame(name=c(as.character(data_long$source), as.character(data_long$target)) %>% unique())
+ 
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+data_long$IDsource=match(data_long$source, nodes$name)-1 
+data_long$IDtarget=match(data_long$target, nodes$name)-1
+
+# prepare colour scale
+ColourScal ='d3.scaleOrdinal() .range(["#FDE725FF","#B4DE2CFF","#6DCD59FF","#35B779FF","#1F9E89FF","#26828EFF","#31688EFF","#3E4A89FF","#482878FF","#440154FF"])'
+
+# Make the Network
+sankeyNetwork(Links = data_long, Nodes = nodes,
+                     Source = "IDsource", Target = "IDtarget",
+                     Value = "value", NodeID = "name", 
+                     sinksRight=FALSE, colourScale=ColourScal, nodeWidth=40, fontSize=13, nodePadding=20)
+```
+
+
+```{r}
+# Libraries
+library(tidyverse)
+library(viridis)
+library(patchwork)
+library(hrbrthemes)
+library(circlize)
+
+# Load dataset from github
+data <- read.table("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/13_AdjacencyDirectedWeighted.csv", header=TRUE)
+# Package
+library(networkD3)
+
+# I need a long format
+test9_long <- test9 %>% dplyr::select(Order, Metabolite, Corr.r)
+
+# Filter for positive correlations
+test9_long_pos <- test9_long %>% dplyr::filter(Corr.r > 0)
+
+# From these flows we need to create a node data frame: it lists every entities involved in the flow
+nodes_pos <- data.frame(name=c(as.character(test9_long_pos$Order), as.character(test9_long_pos$Metabolite)) %>% unique())
+ 
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+test9_long_pos$IDOrder=match(test9_long_pos$Order, nodes_pos$name)-1 
+test9_long_pos$IDMetabolite=match(test9_long_pos$Metabolite, nodes_pos$name)-1
+
+# prepare colour scale
+ColourScal ='d3.scaleOrdinal() .range(["#FDE725FF","#B4DE2CFF","#6DCD59FF","#35B779FF","#1F9E89FF","#26828EFF","#31688EFF","#3E4A89FF","#482878FF","#440154FF"])'
+
+# Make the Network
+sankeyNetwork(Links = test9_long_pos, Nodes = nodes_pos,
+                     Source = "IDOrder", Target = "IDMetabolite",
+                     Value = "Corr.r", NodeID = "name", 
+                     sinksRight=FALSE,colourScale=ColourScal, nodeWidth=10, fontSize=13, nodePadding=10)
+
+# 
+# # Filter for Negative correlations
+# test9_long_neg <- test9_long %>% dplyr::filter(Corr.r < 0)
+# 
+# # From these flows we need to create a node data frame: it lists every entities involved in the flow
+# nodes_neg <- data.frame(name=c(as.character(test9_long_neg$Order), as.character(test9_long_neg$Metabolite)) %>% unique())
+#  
+# # With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+# test9_long_neg$IDOrder=match(test9_long_neg$Order, nodes_neg$name)-1 
+# test9_long_neg$IDMetabolite=match(test9_long_neg$Metabolite, nodes_neg$name)-1
+# 
+# # prepare colour scale
+# ColourScal ='d3.scaleOrdinal() .range(["#FDE725FF","#B4DE2CFF","#6DCD59FF","#35B779FF","#1F9E89FF","#26828EFF","#31688EFF","#3E4A89FF","#482878FF","#440154FF"])'
+# 
+# # Make the Network
+# sankeyNetwork(Links = test9_long_neg, Nodes = nodes_neg,
+#                      Source = "IDOrder", Target = "IDMetabolite",
+#                      Value = "Corr.r", NodeID = "name", 
+#                      sinksRight=FALSE, nodeWidth=40, fontSize=13, nodePadding=20)
+# 
+
+```
+
+
 
 
 Plot heatmap  
 ```{r}
-library(pheatmap)
-pheatmap::pheatmap(cor_mat, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, show_colnames = FALSE)
+# library(pheatmap)
+# pheatmap::pheatmap(cor_mat, cluster_rows = TRUE, cluster_cols = TRUE, show_rownames = FALSE, show_colnames = FALSE)
 ```
 
 Plot cim plot  
 ```{r}
-
-library(ggplot2)
-
-cimDiablo(MyResult.diablo, color.blocks = c('darkorchid', 'brown1', 'lightgreen'), comp = 1, margin=c(8,20), legend.position = "right")
-
-dev.off()
-
-## AH Run this line please :)
-cimDiablo(MyResult.diablo, margin=c(8,8), legend.position = "none", comp = c(1,2), trim=2)
-
-
-cimDiablo(MyResult.diablo, margin=c(8,8), comp = c(1,2), trim=2)
-
-
-#THIS LINE WORKED FOR AH IF YOU RUN THESE THREE LINES TOGETHER - OUTPUTS TO THE PROJECT HOME FOLDER AS cim_XData.jpeg 
-par(mar=c(8, 8, 8, 8), mfrow = c(1, 1))
-cimDiablo(MyResult.diablo, margin=c(4,4), comp = c(1,2), trim=2, save='jpeg')
-dev.off()
-
-
-
-pdf("../output/DIABLO/cim_plot.pdf", height=12, width=12)
-cimDiablo(MyResult.diablo, margin=c(8,8), legend.position = "right", comp = c(1,2), trim=2)
-dev.off()
-
-res <- cimDiablo(MyResult.diablo) ## save the output
-res_mat<-res$mat
-#can use this to pull out correlations with groups (this is super great!)
-write.csv(res_mat, "../output/DIABLO/cim_matrix.csv")
+# library(ggplot2)
+# 
+# #THIS LINE WORKED FOR AH IF YOU RUN THESE THREE LINES TOGETHER - OUTPUTS TO THE PROJECT HOME FOLDER AS cim_XData.jpeg 
+# par(mar=c(8, 8, 8, 8), mfrow = c(1, 1))
+# cimDiablo(MyResult.diablo, margin=c(4,4), comp = c(1,2), trim=2, save='jpeg')
+# dev.off()
+# 
+# # 
+# # pdf("../output/DIABLO/cim_plot.pdf", height=12, width=12)
+# # cimDiablo(MyResult.diablo, margin=c(8,8), legend.position = "right", comp = c(1,2), trim=2)
+# # dev.off()
+# 
+# res <- cimDiablo(MyResult.diablo) ## save the output
+# res_mat<-res$mat
+# #can use this to pull out correlations with groups (this is super great!)
+# write.csv(res_mat, "../output/DIABLO/cim_matrix.csv")
 ```

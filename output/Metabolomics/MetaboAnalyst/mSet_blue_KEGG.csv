@@ -1,64 +1,64 @@
-"","Query","Match","HMDB","PubChem","KEGG","SMILES","Comment"
-"1","2-Aminoethylphosphonate","Ciliatine","HMDB0011747","339","C03557","C(CP(=O)(O)O)N","1"
-"2","4-Guanidinobutanoic acid","4-Guanidinobutanoic acid","HMDB0003464","500","C01035","C(CC(=O)O)CN=C(N)N","1"
-"3","Arginine","L-Arginine","HMDB0000517","6322","C00062","C(C[C@@H](C(=O)O)N)CN=C(N)N","1"
-"4","D-2-Aminobutyric acid","D-Alpha-aminobutyric acid","HMDB0000650","439691","C02261","CC[C@H](C(=O)O)N","1"
-"5","Feature 10","NA","NA","NA","NA","NA","0"
-"6","Feature 11","NA","NA","NA","NA","NA","0"
-"7","Feature 12","NA","NA","NA","NA","NA","0"
-"8","Feature 13","NA","NA","NA","NA","NA","0"
-"9","Feature 14","NA","NA","NA","NA","NA","0"
-"10","Feature 15","NA","NA","NA","NA","NA","0"
-"11","Feature 16","NA","NA","NA","NA","NA","0"
-"12","Feature 17","NA","NA","NA","NA","NA","0"
-"13","Feature 22","NA","NA","NA","NA","NA","0"
-"14","Feature 23","NA","NA","NA","NA","NA","0"
-"15","Feature 25","NA","NA","NA","NA","NA","0"
-"16","Feature 26","NA","NA","NA","NA","NA","0"
-"17","Feature 27","NA","NA","NA","NA","NA","0"
-"18","Feature 35","NA","NA","NA","NA","NA","0"
-"19","Feature 36","NA","NA","NA","NA","NA","0"
-"20","Feature 37","NA","NA","NA","NA","NA","0"
-"21","Feature 40","NA","NA","NA","NA","NA","0"
-"22","Feature 41","NA","NA","NA","NA","NA","0"
-"23","Feature 42","NA","NA","NA","NA","NA","0"
-"24","Feature 43","NA","NA","NA","NA","NA","0"
-"25","Feature 45","NA","NA","NA","NA","NA","0"
-"26","Feature 47","NA","NA","NA","NA","NA","0"
-"27","Feature 50","NA","NA","NA","NA","NA","0"
-"28","Feature 53","NA","NA","NA","NA","NA","0"
-"29","Feature 54","NA","NA","NA","NA","NA","0"
-"30","Feature 56","NA","NA","NA","NA","NA","0"
-"31","Feature 57","NA","NA","NA","NA","NA","0"
-"32","Feature 58","NA","NA","NA","NA","NA","0"
-"33","Feature 59","NA","NA","NA","NA","NA","0"
-"34","Feature 61","NA","NA","NA","NA","NA","0"
-"35","Feature 62","NA","NA","NA","NA","NA","0"
-"36","Feature 63","NA","NA","NA","NA","NA","0"
-"37","Feature 64","NA","NA","NA","NA","NA","0"
-"38","Feature 65","NA","NA","NA","NA","NA","0"
-"39","Feature 66","NA","NA","NA","NA","NA","0"
-"40","Feature 67","NA","NA","NA","NA","NA","0"
-"41","Feature 69","NA","NA","NA","NA","NA","0"
-"42","Feature 7","NA","NA","NA","NA","NA","0"
-"43","Feature 75","NA","NA","NA","NA","NA","0"
-"44","Feature 8","NA","NA","NA","NA","NA","0"
-"45","Feature 84","NA","NA","NA","NA","NA","0"
-"46","Feature 89","NA","NA","NA","NA","NA","0"
-"47","Feature 9","NA","NA","NA","NA","NA","0"
-"48","Glucose-6-phosphate","Glucose 6-phosphate","HMDB0001401","5958","C00092","C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)OP(=O)(O)O","1"
-"49","Glycine","Glycine","HMDB0000123","750","C00037","C(C(=O)O)N","1"
-"50","Histidine","L-Histidine","HMDB0000177","6274","C00135","C1=C(NC=N1)C[C@@H](C(=O)O)N","1"
-"51","Homoarginine","Homo-L-arginine","HMDB0000670","9085","C01924","C(CCN=C(N)N)C[C@@H](C(=O)O)N","1"
-"52","Lysine","L-Lysine","HMDB0000182","5962","C00047","C(CCN)C[C@@H](C(=O)O)N","1"
-"53","N-acetyl-L-ornithine","N-Acetylornithine","HMDB0003357","439232","C00437","CC(=O)N[C@@H](CCCN)C(=O)O","1"
-"54","NADPH","NADPH","HMDB0000221","22833512","C00005","C1C=CN(C=C1C(=O)N)[C@@H]2[C@H]([C@H]([C@@H](O2)COP(=O)(O)OP(=O)(O)OC[C@H]3[C@@H]([C@@H]([C@H](O3)N4C=NC5=C4N=CN=C5N)OP(=O)(O)O)O)O)O","1"
-"55","NG-dimethyl-L-arginine","Asymmetric dimethylarginine","HMDB0001539","123831","C03626","CN(C)C(=NCCC[C@@H](C(=O)O)N)N","1"
-"56","O-Phosphorylethanolamine","O-Phosphoethanolamine","HMDB0000224","1015","C00346","C(COP(=O)(O)O)N","1"
-"57","Ornithine","Ornithine","HMDB0000214","6262","C00077","C(C[C@@H](C(=O)O)N)CN","1"
-"58","Phenylpropanolamine","Phenylpropanolamine","HMDB0001942","26934","C02343","C[C@H]([C@H](C1=CC=CC=C1)O)N","1"
-"59","Phosphocholine","Phosphorylcholine","HMDB0001565","8691","C00588","C[N+](C)(C)CCOP(=O)(O)O","1"
-"60","UDP-N-acetyl-glucosamine","Uridine diphosphate-N-acetylglucosamine","HMDB0000290","9547196","C00043","CC(=O)N[C@@H]1[C@H]([C@@H]([C@H](O[C@@H]1OP(=O)(O)OP(=O)(O)OC[C@@H]2[C@H]([C@H]([C@@H](O2)N3C=CC(=O)NC3=O)O)O)CO)O)O","1"
-"61","UMP","Uridine 5'-monophosphate","HMDB0000288","6030","C00105","C1=CN(C(=O)NC1=O)[C@H]2[C@@H]([C@@H]([C@H](O2)COP(=O)(O)O)O)O","1"
-"62","Uric acid","Uric acid","HMDB0000289","1175","C00366","C12=C(NC(=O)N1)NC(=O)NC2=O","1"
-"63","Xanthosine-5-phosphate","NA","NA","NA","NA","NA","0"
+,Query,Match,HMDB,PubChem,KEGG,SMILES,Comment
+1,2-Aminoethylphosphonate,Ciliatine,HMDB0011747,339,C03557,C(CP(=O)(O)O)N,1
+2,4-Guanidinobutanoic acid,4-Guanidinobutanoic acid,HMDB0003464,500,C01035,C(CC(=O)O)CN=C(N)N,1
+3,Arginine,L-Arginine,HMDB0000517,6322,C00062,C(C[C@@H](C(=O)O)N)CN=C(N)N,1
+4,D-2-Aminobutyric acid,D-Alpha-aminobutyric acid,HMDB0000650,439691,C02261,CC[C@H](C(=O)O)N,1
+5,Feature 10,NA,NA,NA,NA,NA,0
+6,Feature 11,NA,NA,NA,NA,NA,0
+7,Feature 12,NA,NA,NA,NA,NA,0
+8,Feature 13,NA,NA,NA,NA,NA,0
+9,Feature 14,NA,NA,NA,NA,NA,0
+10,Feature 15,NA,NA,NA,NA,NA,0
+11,Feature 16,NA,NA,NA,NA,NA,0
+12,Feature 17,NA,NA,NA,NA,NA,0
+13,Feature 22,NA,NA,NA,NA,NA,0
+14,Feature 23,NA,NA,NA,NA,NA,0
+15,Feature 25,NA,NA,NA,NA,NA,0
+16,Feature 26,NA,NA,NA,NA,NA,0
+17,Feature 27,NA,NA,NA,NA,NA,0
+18,Feature 35,NA,NA,NA,NA,NA,0
+19,Feature 36,NA,NA,NA,NA,NA,0
+20,Feature 37,NA,NA,NA,NA,NA,0
+21,Feature 40,NA,NA,NA,NA,NA,0
+22,Feature 41,NA,NA,NA,NA,NA,0
+23,Feature 42,NA,NA,NA,NA,NA,0
+24,Feature 43,NA,NA,NA,NA,NA,0
+25,Feature 45,NA,NA,NA,NA,NA,0
+26,Feature 47,NA,NA,NA,NA,NA,0
+27,Feature 50,NA,NA,NA,NA,NA,0
+28,Feature 53,NA,NA,NA,NA,NA,0
+29,Feature 54,NA,NA,NA,NA,NA,0
+30,Feature 56,NA,NA,NA,NA,NA,0
+31,Feature 57,NA,NA,NA,NA,NA,0
+32,Feature 58,NA,NA,NA,NA,NA,0
+33,Feature 59,NA,NA,NA,NA,NA,0
+34,Feature 61,NA,NA,NA,NA,NA,0
+35,Feature 62,NA,NA,NA,NA,NA,0
+36,Feature 63,NA,NA,NA,NA,NA,0
+37,Feature 64,NA,NA,NA,NA,NA,0
+38,Feature 65,NA,NA,NA,NA,NA,0
+39,Feature 66,NA,NA,NA,NA,NA,0
+40,Feature 67,NA,NA,NA,NA,NA,0
+41,Feature 69,NA,NA,NA,NA,NA,0
+42,Feature 7,NA,NA,NA,NA,NA,0
+43,Feature 75,NA,NA,NA,NA,NA,0
+44,Feature 8,NA,NA,NA,NA,NA,0
+45,Feature 84,NA,NA,NA,NA,NA,0
+46,Feature 89,NA,NA,NA,NA,NA,0
+47,Feature 9,NA,NA,NA,NA,NA,0
+48,Glucose-6-phosphate,Glucose 6-phosphate,HMDB0001401,5958,C00092,C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)OP(=O)(O)O,1
+49,Glycine,Glycine,HMDB0000123,750,C00037,C(C(=O)O)N,1
+50,Histidine,L-Histidine,HMDB0000177,6274,C00135,C1=C(NC=N1)C[C@@H](C(=O)O)N,1
+51,Homoarginine,Homo-L-arginine,HMDB0000670,9085,C01924,C(CCN=C(N)N)C[C@@H](C(=O)O)N,1
+52,Lysine,L-Lysine,HMDB0000182,5962,C00047,C(CCN)C[C@@H](C(=O)O)N,1
+53,N-acetyl-L-ornithine,N-Acetylornithine,HMDB0003357,439232,C00437,CC(=O)N[C@@H](CCCN)C(=O)O,1
+54,NADPH,NADPH,HMDB0000221,22833512,C00005,C1C=CN(C=C1C(=O)N)[C@@H]2[C@H]([C@H]([C@@H](O2)COP(=O)(O)OP(=O)(O)OC[C@H]3[C@@H]([C@@H]([C@H](O3)N4C=NC5=C4N=CN=C5N)OP(=O)(O)O)O)O)O,1
+55,NG-dimethyl-L-arginine,Asymmetric dimethylarginine,HMDB0001539,123831,C03626,CN(C)C(=NCCC[C@@H](C(=O)O)N)N,1
+56,O-Phosphorylethanolamine,O-Phosphoethanolamine,HMDB0000224,1015,C00346,C(COP(=O)(O)O)N,1
+57,Ornithine,Ornithine,HMDB0000214,6262,C00077,C(C[C@@H](C(=O)O)N)CN,1
+58,Phenylpropanolamine,Phenylpropanolamine,HMDB0001942,26934,C02343,C[C@H]([C@H](C1=CC=CC=C1)O)N,1
+59,Phosphocholine,Phosphorylcholine,HMDB0001565,8691,C00588,C[N+](C)(C)CCOP(=O)(O)O,1
+60,UDP-N-acetyl-glucosamine,Uridine diphosphate-N-acetylglucosamine,HMDB0000290,9547196,C00043,CC(=O)N[C@@H]1[C@H]([C@@H]([C@H](O[C@@H]1OP(=O)(O)OP(=O)(O)OC[C@@H]2[C@H]([C@H]([C@@H](O2)N3C=CC(=O)NC3=O)O)O)CO)O)O,1
+61,UMP,Uridine 5'-monophosphate,HMDB0000288,6030,C00105,C1=CN(C(=O)NC1=O)[C@H]2[C@@H]([C@@H]([C@H](O2)COP(=O)(O)O)O)O,1
+62,Uric acid,Uric acid,HMDB0000289,1175,C00366,C12=C(NC(=O)N1)NC(=O)NC2=O,1
+63,Xanthosine-5-phosphate,NA,NA,NA,NA,NA,0

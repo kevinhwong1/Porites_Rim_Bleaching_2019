@@ -1,0 +1,7 @@
+Type III Analysis of Variance Table with Satterthwaite's method
+           Sum Sq Mean Sq NumDF DenDF F value  Pr(>F)  
+Group       8.069   4.035     2    12  0.3801 0.69172  
+Day        63.942  31.971     2    24  3.0123 0.06804 .
+Group:Day 120.467  30.117     4    24  2.8376 0.04654 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
