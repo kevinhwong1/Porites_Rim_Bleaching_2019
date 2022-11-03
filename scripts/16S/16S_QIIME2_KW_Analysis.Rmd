@@ -266,6 +266,9 @@ rich = estimate_richness(ps.rarefied, measures = c("Observed", "Shannon"))
 Shannon_lmer <- aov(rich$Shannon ~ sample_data(ps.rarefied)$Group * sample_data(ps.rarefied)$Day)
 Shannon_summary<- tidy(Shannon_lmer)
 Shannon_summary
+
+TukeyHSD(Shannon_lmer)
+
 ```
 
 ## Plotting Shannon

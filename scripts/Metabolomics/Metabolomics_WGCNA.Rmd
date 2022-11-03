@@ -1,8 +1,16 @@
 ---
-title: "Metabolomics_WGCNA"
-author: "Kevin Wong"
-date: "18/11/2021"
-output: html_document
+title: "Metabolomics WGCNA"
+author: "Author: Kevin Wong; kevinhwong1@gmail.com"
+output:
+  github_document: default
+  pdf_document:
+    keep_tex: yes
+  html_document:
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}

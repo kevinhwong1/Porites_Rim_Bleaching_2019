@@ -32,13 +32,22 @@ tnks <- c("Tank 5", "Tank 6")
 
 
 # Making a date column to merge lunar day 
-data$date <-as.Date(data$Date.Time, "%y-%m-%d")
+data$date <-as.Date(data$Date.Time, "%Y-%m-%d")
 
 exp.day <- read.csv("data/Metadata/experiment_day.csv")
-exp.day$date <-as.Date(lunar.day$date, "%Y-%m-%d")
+exp.day$date <-as.Date(exp.day$date, "%Y-%m-%d")
 
 data.exp <- merge(data, exp.day, by = "date")
 data.exp$Experimental.Day <- as.numeric(data.exp$Experimental.Day)
+
+data.exp_long <- gather(data.exp, Treatment, Temperature, Tank5:Tank6, factor_key=TRUE)
+
+temp.sum <- summarySE(data.exp_long, measurevar="Temperature", groupvars="Treatment")
+
+t.test(Temperature ~ Treatment, data = data.exp_long)
+
+
+
 
 
 #Making actual plot 

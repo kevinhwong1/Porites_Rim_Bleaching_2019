@@ -32,7 +32,7 @@ library(dplyr)
 #~/MyProjects/Porites_Nutrition_June2019/data/pH_Calibration_Files
 
 ##### DISCRETE pH CALCULATIONS #####
-path <-("~/MyProjects/Porites_Nutrition_June2019/data/pH_Calibration_Files")
+path <-("~/MyProjects/Porites_Rim_Bleaching_2019/data/Daily_Measurements/pH_Calibration_Files")
 file.names<-list.files(path = path, pattern = "csv$") #list all the file names in the folder to get only get the csv files
 pH.cals <- data.frame(matrix(NA, nrow=length(file.names), ncol=3, dimnames=list(file.names,c("Date", "Intercept", "Slope")))) #generate a 3 column dataframe with specific column names
 
@@ -54,7 +54,7 @@ R <- 8.31447215 #gas constant in J mol-1 K-1
 F <-96485.339924 #Faraday constant in coulombs mol-1
 
 #read in probe measurements of pH, temperature, and salinity from tanks
-daily <- read.csv("data/July_Rim/Daily_Measurements/Daily_Temp_pH_Sal_RIM_ADULT.csv", header=TRUE, sep=",", na.strings="NA") #load data with a header, separated by commas, with NA as NA
+daily <- read.csv("data/Daily_Measurements/Daily_Temp_pH_Sal_RIM_ADULT.csv", header=TRUE, sep=",", na.strings="NA") #load data with a header, separated by commas, with NA as NA
 daily <- daily
 min(na.omit(daily$Temperature))
 max(na.omit(daily$Temperature))
@@ -164,3 +164,20 @@ Salinity <- ggplot(SW.chem.Exp, aes(x=Date.Time, y=Salinity, group = Tank, color
                      panel.grid.minor = element_blank(), axis.line = element_blank()) 
 sw.chem <- arrangeGrob (Temp, pH, Salinity, ncol=1)
 ggsave(file="output/Daily_Measures_Tank_Time_AdultRIM_Experimental.pdf", sw.chem, width = 11, height = 11, units = c("in"))
+
+
+### parameters 
+library(Rmisc)
+library(dplyr)
+
+SW.chem.Exp.clean <- SW.chem.Exp %>% filter(pH.Total != "NA")
+SW.chem.Exp.clean$Treatment <- as.factor(SW.chem.Exp.clean$Treatment)
+
+pH.sum <- summarySE(SW.chem.Exp.clean, measurevar="pH.Total", groupvars="Treatment")
+t.test(pH.Total ~ Treatment, data = SW.chem.Exp.clean)
+
+sal.sum <- summarySE(SW.chem.Exp.clean, measurevar="Salinity", groupvars="Treatment")
+t.test(Salinity ~ Treatment, data = SW.chem.Exp.clean)
+
+
+

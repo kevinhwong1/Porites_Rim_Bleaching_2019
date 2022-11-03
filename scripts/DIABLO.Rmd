@@ -82,9 +82,10 @@ rownames(Metabolome3) <- paste0(Metabolome3$ColDay)
 rownames(Microbiome3) <- paste0(Microbiome3$ColDay)
 #rownames(Gene3) <- paste0(Gene3$ColDay)
 
-Metabolome_final <- Metabolome3 %>% dplyr::select(-ColDay) 
+Metabolome_final <- Metabolome3 %>% dplyr::select(-ColDay)%>% dplyr::
 Microbiome_final <- Microbiome3 %>% dplyr::select(-ColDay)
 #Gene_final <- Gene3 %>% dplyr::select(-ColDay)
+
 ```
 
 # SPLSDA for each omic
